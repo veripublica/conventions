@@ -1,0 +1,11 @@
+# GitHub Pages configuration. Renders the repository's Markdown as a web site
+# at https://veripublica.github.io/conventions/. GitHub Pages' default plugins
+# handle the rest, with no changes to the documents themselves:
+#   - jekyll-readme-index      -> README.md becomes the site's home page
+#   - jekyll-optional-front-matter -> CLI.md / FORMATS.md render without needing
+#                                     any front matter (kept as plain Markdown)
+#   - jekyll-relative-links     -> [x](./CLI.md) links resolve to the rendered page
+# Update the Markdown on the main branch and the site rebuilds automatically.
+title: veripublica conventions
+description: Shared CLI, exit-code, file-naming, and JSON-output conventions for veripublica tools.
+theme: jekyll-theme-cayman
