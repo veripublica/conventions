@@ -50,6 +50,6 @@ issues.
 
 ## License
 
-_To be confirmed by the maintainer._ For an open specification meant for others
-(including outside veripublica) to adopt, a permissive documentation license
-such as **CC-BY-4.0** is recommended — see the note in the pull request / issue.
+The veripublica conventions are licensed **[CC-BY-4.0](./LICENSE)** — free to
+adopt and adapt, including outside veripublica, with attribution. A permissive
+license is deliberate: the point of a convention is for others to follow it.
