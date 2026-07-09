@@ -12,6 +12,16 @@ veripublica ships a pipeline of small, single-purpose EPUB tools:
 next tool's input — a common contract is worth more than each tool's local
 cleverness. This repository is that contract.
 
+## Scope
+
+These conventions govern the command-line **tools** — epubveri, epubsana,
+epublift — that users invoke and that consume each other's files. The family
+also includes shared pure-Rust **libraries** (styloria — CSS; schemora —
+XPath/Schematron) that the tools build on. The CLI and output rules here don't
+apply to libraries; libraries share only the house license and pure-Rust
+conventions. Any library-level conventions (API shape, error types, position
+reporting) would live in a separate document if the need arises.
+
 ## Documents
 
 | Document | Covers |
