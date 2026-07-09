@@ -1,7 +1,7 @@
 # veripublica CLI convention
 
-**Version 1.0 (draft).** The command-line contract every veripublica tool
-follows. Key words **MUST**, **SHOULD**, **MAY** are used in the
+**Version 0.1.0.** The command-line contract every veripublica tool follows. Key
+words **MUST**, **SHOULD**, **MAY** are used in the
 [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) sense.
 
 The goal: a user or a script that knows one veripublica tool already knows how
@@ -91,5 +91,9 @@ failed," so the two are never confused.
 
 - Tools use [SemVer](https://semver.org/). Before a tool's own `v1.0.0`, its CLI
   MAY still change.
+- This convention is itself `0.x`: while below `1.0.0`, any rule here MAY change.
+  See [CONTRIBUTING.md](./CONTRIBUTING.md#4-versioning).
 - A tool SHOULD state the convention version it targets (in `--help`, README, or
-  docs), e.g. *"conforms to veripublica conventions v1."*
+  docs), e.g. *"conforms to veripublica conventions v0.1."* The version named
+  MUST be one that has been tagged; a claim against `main` points at a moving
+  document.

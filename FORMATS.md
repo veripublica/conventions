@@ -1,6 +1,6 @@
 # veripublica machine-output format
 
-**Version 1.0 (draft).** The stable JSON a tool emits under `--format json`, so
+**Version 0.1.0.** The stable JSON a tool emits under `--format json`, so
 one veripublica tool (or any external program — Sigil, Calibre, a CI job) can
 consume another's output without bespoke parsing.
 
@@ -17,7 +17,7 @@ Every `--format json` invocation prints **one** JSON object to stdout:
 {
   "tool": "epubsana",
   "tool_version": "0.2.0",
-  "convention": "1.0",
+  "convention": "0.1",
   "input": "book.epub",
   "status": "problems",
   "summary": { "errors_before": 150, "errors_after": 0, "applied": 2, "skipped": 0 },

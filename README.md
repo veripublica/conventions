@@ -28,6 +28,7 @@ reporting) would live in a separate document if the need arises.
 | --- | --- |
 | [CLI.md](./CLI.md) | Invocation shape, the reserved options every tool shares, output-file naming, and exit codes. |
 | [FORMATS.md](./FORMATS.md) | The stable machine-readable output (`--format json`): a shared envelope so one tool can consume another's output without bespoke parsing. |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | What belongs in this repository, how a change is proposed and decided, versioning, and how the tools keep up. |
 
 ## How a tool conforms
 
@@ -38,7 +39,7 @@ A conforming tool:
 2. Uses the shared exit-code and output-naming rules.
 3. Emits the shared envelope for `--format json`.
 4. States the convention version it targets — in its `--help`, its README, or
-   its docs (e.g. *"conforms to veripublica conventions v1"*).
+   its docs (e.g. *"conforms to veripublica conventions v0.1"*).
 
 The convention specifies **behaviour, not implementation.** A tool may parse its
 arguments by hand or with a library (e.g. `clap`); it only has to expose the
@@ -46,10 +47,11 @@ defined interface. Likewise it may be pure-Rust or anything else.
 
 ## Versioning
 
-This convention is versioned with [SemVer](https://semver.org/). A **major**
-bump is a breaking change to the contract; tools declare the major version they
-target. Current version: **1.0 (draft)** — being adopted across the tools before
-any of them reaches its own `v1.0.0`, which is the cheapest time to settle it.
+This convention is versioned with [SemVer](https://semver.org/). Current version:
+**0.1.0** — while below `1.0.0`, any rule MAY change. This is deliberate: the
+contract is being settled before any tool reaches its own `v1.0.0`, which is the
+cheapest time to settle it. See [CONTRIBUTING.md](./CONTRIBUTING.md) for how a
+change is proposed, decided, and released.
 
 ## Status
 
