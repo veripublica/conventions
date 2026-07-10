@@ -11,8 +11,23 @@ boundary is the **minor** version: `0.1` → `0.2` may break anything.
 
 ## [Unreleased]
 
-Nothing yet. Accepted proposals are batched here before a release; see the
+Accepted proposals are batched here before a release; see the
 [open issues](https://github.com/veripublica/conventions/issues).
+
+### Accepted, not yet written into the documents
+
+- [#5](https://github.com/veripublica/conventions/issues/5) — a tool MUST NOT
+  prompt when stdin is not a TTY, nor when it reads its input from stdin; when a
+  decision cannot be obtained it MUST stop with exit `2` rather than silently
+  answer "no". Affects CLI.md §5 and §6. A **safety carve-out**: no tool detects a
+  terminal today.
+
+### Fixed
+
+- **CONTRIBUTING.md** contradicted itself: §3 closed an issue on decision, while
+  §4 had the release pull request close it. Resolved in favour of §4 — `accepted`
+  issues stay open until a release writes them down, so the open `accepted` label
+  is the queue that batching depends on. `declined` issues close on decision.
 
 ## [0.1.0] — 2026-07-10
 

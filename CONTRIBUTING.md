@@ -57,10 +57,15 @@ behaviour change for any released tool.
 
 **2. Discuss.** In the issue. Other veripublica projects weigh in there.
 
-**3. Decide.** The issue is closed with a **Decision** comment recording what was
-decided, **why**, and what was rejected along the way. It is labelled `accepted`
-or `declined`. Declined issues are closed, never deleted: *"why we didn't do
-that"* is worth as much as the rules we did adopt.
+**3. Decide.** A **Decision** comment records what was decided, **why**, and what
+was rejected along the way.
+
+- `declined` issues are **closed** at this point. Never deleted: *"why we didn't
+  do that"* is worth as much as the rules we did adopt.
+- `accepted` issues stay **open**, and are closed by the pull request that writes
+  them into the documents (step 4). The open `accepted` issues are therefore the
+  queue of decisions taken but not yet written down — which is exactly what
+  batching requires you to be able to see.
 
 **4. Ship.** Accepted decisions are **batched**, not applied one at a time. A
 single pull request writes the accumulated decisions into the documents, closes
@@ -75,8 +80,8 @@ next. Tools track **releases**, not `main`.
 | Label | Meaning |
 | --- | --- |
 | `proposed` | Open, under discussion. |
-| `accepted` | Decided; waiting to be written into the documents. |
-| `declined` | Decided against. The issue records why. |
+| `accepted` | Decided; open until a release writes it into the documents. |
+| `declined` | Decided against, and closed. The issue records why. |
 
 ## 4. Versioning
 
