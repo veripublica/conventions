@@ -1,3 +1,7 @@
+---
+title: Contributing
+---
+
 # Contributing to veripublica conventions
 
 This repository holds the shared contract the veripublica tools follow. It is a

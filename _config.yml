@@ -3,7 +3,12 @@
 # handle the rest, with no changes to the documents themselves:
 #   - jekyll-readme-index      -> README.md becomes the site's home page
 #   - jekyll-optional-front-matter -> CLI.md / FORMATS.md render without needing
-#                                     any front matter (kept as plain Markdown)
+#                                     any front matter (kept as plain Markdown).
+#                                     One exception: the plugin hard-codes a
+#                                     FILENAME_BLACKLIST (README, LICENSE,
+#                                     CONTRIBUTING, ...), so CONTRIBUTING.md
+#                                     carries three lines of front matter to
+#                                     render as a page at all.
 #   - jekyll-relative-links     -> [x](./CLI.md) links resolve to the rendered page
 # Update the Markdown on the main branch and the site rebuilds automatically.
 #
