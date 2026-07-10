@@ -135,12 +135,12 @@ moves once:
 
 Any version string a tool reports — in `--help`, in a document, in machine output
 — carries the version **at that precision** (the *stability key*): the current
-minor prefix (e.g. `0.2`) while `0.x`, the major (`1`) after `1.0.0`.
+minor prefix (e.g. `0.3`) while `0.x`, the major (`1`) after `1.0.0`.
 
 ### Declaring conformance
 
 A tool states the stability key it targets, e.g. *"conforms to veripublica
-conventions v0.2"*. It must name a version that has been **tagged** (a `v0.2.x`
+conventions v0.3"*. It must name a version that has been **tagged** (a `v0.3.x`
 tag must exist). A claim
 against `main`, or against an untagged `v1`, points at a moving document and
 means nothing.

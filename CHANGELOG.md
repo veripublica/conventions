@@ -17,6 +17,49 @@ That label is the queue; this section is filled in by the pull request that ship
 them. Listing them here as well would be a second copy to keep in step, and it
 would drift.
 
+## [0.3.0] — 2026-07-11
+
+Two decisions (#20, #21), one batch. FORMATS.md's envelope is redesigned while
+it is still provisional and free to change — which is the entire point of the
+provisional notice.
+
+### Changed — FORMATS.md, the envelope (#21)
+
+- **`inputs[]` array replaces the single `input` string** — uniformly, an array
+  even for one input, so every consumer writes one loop. Each element is a
+  self-contained input object: `path`, `status`, `error` (why this input could
+  not be processed), `output` (transformers: the path written — the fact the
+  human output already prints), per-input `summary` and `items`.
+- **Top-level `status` mirrors the exit code** by #16's aggregation; **`dry_run`**
+  marks a `--dry-run` report of identical shape (#9's deferred half, resolved).
+- **A usage error produces no envelope**: stderr text, empty stdout (#6). The
+  envelope describes runs that happened.
+- **`inputs[]` preserves command-line order.** Item fields are unchanged.
+- **The standard/tool-owned boundary is written down**: the skeleton (envelope,
+  input object, shared item fields) is standard; `summary` keys and
+  `items[].data` are each tool's own, promoted to shared fields only when a
+  second tool needs them — by an issue, not by drift.
+- NDJSON was rejected on the record; pipeline-orchestration rationale for
+  `output` was rejected as out of scope. FORMATS.md **remains provisional**:
+  stability begins with the first implementation.
+
+### Added — CLI.md §3.1 (#20)
+
+- The `<semver>` printed by `-V` **MAY carry SemVer build metadata**
+  (`+<short-hash>`, `.dirty`) pinning the exact source; unavailable (e.g. a
+  crates.io build) → silent fallback to the plain version, MUST. One string
+  everywhere: `-V`, a wasm `version()`, a demo footer.
+
+### Non-normative, shipped on `main` since 0.2.0
+
+- The site wears the family look: `assets/tokens.css` is a verbatim copy from
+  [family-web](https://github.com/veripublica/family-web) (template v1),
+  replacing the Cayman theme.
+- FORMATS.md's sections are numbered, matching CLI.md and CONTRIBUTING.md.
+- CONTRIBUTING.md carries three lines of front matter — the
+  jekyll-optional-front-matter plugin blacklists it by name and would otherwise
+  serve it as raw markdown.
+
 ## [0.2.0] — 2026-07-10
 
 Eighteen proposals (#1–#18), discussed and decided one by one, written into the
@@ -119,6 +162,7 @@ document instead of a moving `main`.
   "major version" and is under discussion in
   [#12](https://github.com/veripublica/conventions/issues/12).
 
-[Unreleased]: https://github.com/veripublica/conventions/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/veripublica/conventions/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/veripublica/conventions/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/veripublica/conventions/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/veripublica/conventions/releases/tag/v0.1.0
