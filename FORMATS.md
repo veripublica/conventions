@@ -1,11 +1,32 @@
 # veripublica machine-output format
 
-**Version 0.1.0.** The stable JSON a tool emits under `--format json`, so
-one veripublica tool (or any external program — Sigil, Calibre, a CI job) can
-consume another's output without bespoke parsing.
+**Version 0.2.0 — PROVISIONAL.**
 
-`human` format is for people and MAY change freely. **`json` is a contract:**
-its shape is stable within a convention major version.
+> **No tool emits this envelope yet.** This document is a design proposal, not an
+> observed contract: its shape MAY change without a major (or, while `0.x`,
+> minor) version bump **until the first tool ships it** — the stability
+> guarantee below begins at that first implementation, not before. Two design
+> questions are known to be open and MUST be resolved before this notice comes
+> off:
+>
+> 1. **Multiple inputs.** A verifier may take repeated `-i`
+>    ([CLI.md §2](./CLI.md#2-input)); the envelope's `input` field is a single
+>    string and cannot describe such a run.
+> 2. **Dry runs.** A `--dry-run` invocation under `--format json` must be
+>    distinguishable from a real one, and identical in shape
+>    ([CLI.md §3.7](./CLI.md#37---dry-run)).
+>
+> The `json` format name is reserved by
+> [CLI.md §3](./CLI.md#3-options) regardless: a tool that has not implemented it
+> **rejects** `--format json` rather than falling back to `human`.
+
+This document specifies the JSON a tool will emit under `--format json`, so one
+veripublica tool (or any external program — Sigil, Calibre, a CI job) can consume
+another's output without bespoke parsing.
+
+`human` format is for people and MAY change freely. `json`, once implemented, is
+a contract: its shape is stable within the convention's stability boundary
+([CLI.md §9](./CLI.md#9-versioning)).
 
 ---
 
@@ -41,8 +62,8 @@ Every `--format json` invocation prints **one** JSON object to stdout:
 | --- | --- | --- |
 | `tool` | string | The tool's name (e.g. `"epubveri"`). |
 | `tool_version` | string | The tool's SemVer. |
-| `convention` | string | Convention major version this output follows (e.g. `"1.0"`). |
-| `input` | string | The input path as given. |
+| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.1"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. |
+| `input` | string | The input path as given. **Known-insufficient** for multi-input runs; see the provisional notice. |
 | `status` | string | `"ok"` (nothing wrong / goal met), `"problems"` (findings remain), or `"error"` (the tool could not run — see [exit codes](./CLI.md#6-exit-codes)). Mirrors the exit code: `ok`→0, `problems`→1, `error`→2. |
 | `summary` | object | Tool-specific counts (small, flat). Optional. |
 | `items` | array | The findings / fixes / operations. May be empty. |
@@ -66,10 +87,15 @@ them across tools — and a tool MAY add more under `data`:
 Fields that don't apply MAY be omitted. Consumers MUST ignore unknown fields
 (so tools can extend `data` without breaking anyone).
 
-## Guarantees
+## Guarantees — from the first implementation on
 
-- Exactly one JSON object on stdout; nothing else on stdout in `json` mode.
-- Stable within a convention major version: fields are not removed or
+- Exactly one JSON object on stdout; nothing else on stdout in `json` mode. The
+  output is never colorized ([CLI.md §5](./CLI.md#5-streams-prompts-and-color)).
+- Stable within the convention's stability boundary: fields are not removed or
   repurposed; new optional fields MAY be added.
 - The envelope is shared; the meaning of `items[].data` is each tool's own and
   is documented in that tool's docs.
+
+Until the first implementation ships, none of the above binds anyone — that is
+what **provisional** means. It is written in contract language so that adopting
+it, when the time comes, is a decision rather than a rewrite.

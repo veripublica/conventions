@@ -17,6 +17,72 @@ That label is the queue; this section is filled in by the pull request that ship
 them. Listing them here as well would be a second copy to keep in step, and it
 would drift.
 
+## [0.2.0] — 2026-07-10
+
+Eighteen proposals (#1–#18), discussed and decided one by one, written into the
+documents in a single batch. Each issue's closing **Decision** comment records
+what was decided, why, and what was rejected. Breaking changes are listed as
+such; under `0.x` the stability boundary is the minor version, so `0.1` → `0.2`
+may break anything — and does.
+
+### Breaking
+
+- **Input is `-i, --input` only; positional paths are forbidden** (#16). A
+  transformer takes exactly one input; a verifier may repeat `-i`. `-` (stdin)
+  is removed; `--` is accepted-and-ignored, nothing more (#3).
+- **An unrecognized token is a usage error** — option-like or bare (#3). The
+  only bare token a tool accepts is a subcommand name from its fixed vocabulary.
+- **An option-argument outside the option's defined set is a usage error**,
+  never a silent fallback — reserved-but-unimplemented `--format json` included
+  (#7).
+- **A single-valued option given twice is a usage error**, never last-wins
+  (#18).
+- **`--format` is mandatory** in every tool and every subcommand, supporting at
+  least `human` (#8).
+- **An existing output file is never silently overwritten**: refuse with exit
+  `2`; `-f, --force` (new reserved flag) permits replacement and never lifts the
+  output-equals-input refusal; overwrite permission is never obtained by prompt
+  (#4).
+- **A tool never prompts when stdin is not a TTY**; when it cannot obtain a
+  decision it stops with exit `2`, naming the unblocking option (#5).
+- **Short flags come only from the closed reserved set**
+  (`-i -o -f -q -v -y -h -V`); every other option is long-form only (#17).
+- **Required syntaxes**: `--name=VALUE`, attached `-nVALUE`, and bundling of
+  value-less short flags, with POSIX semantics for value-taking flags in a
+  bundle (#11).
+- **Exit `2` redefined for multi-input runs**: at least one input could not be
+  processed; every input is still processed and reported (#16).
+
+### Added
+
+- **Conformance defined** (CLI.md §8): applicability table, no levels, claims
+  name a tagged stability key (#8).
+- **Help baseline** (CLI.md §7): synopsis + complete options list MUST;
+  examples, exit codes, conformance line SHOULD; `-h` ≡ `--help`; canonical
+  reserved-option descriptions; all CLI text in English — localization belongs
+  to GUI layers (#2).
+- **Color rules** (CLI.md §5): per-stream TTY gating, `NO_COLOR`, `--color`
+  precedence; `json` never colorized (#1).
+- **`--dry-run` semantics** (CLI.md §3.7): validates everything, fails
+  identically, writes nothing; its `json` shape is deferred to the envelope
+  redesign (#9).
+- **`-v` is a boolean**: no levels, repetition idempotent, `-q`/`-v` last-wins
+  (#10).
+- **Prior art section** (CLI.md §10): POSIX, GNU, no-color.org — correctly
+  labelled, with the deliberate departures listed and linked (#14).
+- **Repetition table** (CLI.md §3.4) unifying #10, #16, #18.
+
+### Changed
+
+- **FORMATS.md is provisional** (#15): no tool emits the envelope; the stability
+  guarantee begins with the first implementation. Known-open: multi-input
+  `input`, dry-run shape.
+- **`convention` field carries the stability key** — `"0.1"` while `0.x`, `"1"`
+  from `1.0.0`; definition and example now agree (#12).
+- **Default output naming generalised** to `<input-stem>_<verb><ext>`; the
+  extension-changing transformer class defined (#13).
+- **RFC 8174 cited alongside RFC 2119** (BCP 14 formula) (#14).
+
 ### Fixed
 
 - **CONTRIBUTING.md** contradicted itself: §3 closed an issue on decision, while
@@ -53,5 +119,6 @@ document instead of a moving `main`.
   "major version" and is under discussion in
   [#12](https://github.com/veripublica/conventions/issues/12).
 
-[Unreleased]: https://github.com/veripublica/conventions/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/veripublica/conventions/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/veripublica/conventions/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/veripublica/conventions/releases/tag/v0.1.0
