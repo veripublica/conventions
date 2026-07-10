@@ -130,12 +130,14 @@ moves once:
 - from `1.0.0`: stability is per **major**.
 
 Any version string a tool reports — in `--help`, in a document, in machine output
-— carries the version **at that precision**: `0.1` today, `1` after `1.0.0`.
+— carries the version **at that precision** (the *stability key*): the current
+minor prefix (e.g. `0.2`) while `0.x`, the major (`1`) after `1.0.0`.
 
 ### Declaring conformance
 
-A tool states the convention version it targets, e.g. *"conforms to veripublica
-conventions v0.1"*. It must name a version that has been **tagged**. A claim
+A tool states the stability key it targets, e.g. *"conforms to veripublica
+conventions v0.2"*. It must name a version that has been **tagged** (a `v0.2.x`
+tag must exist). A claim
 against `main`, or against an untagged `v1`, points at a moving document and
 means nothing.
 

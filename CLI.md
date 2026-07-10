@@ -1,99 +1,349 @@
 # veripublica CLI convention
 
-**Version 0.1.0.** The command-line contract every veripublica tool follows. Key
-words **MUST**, **SHOULD**, **MAY** are used in the
-[RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) sense.
+**Version 0.2.0.** The command-line contract every veripublica tool follows. The
+key words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are to be interpreted as
+described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
+[RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they
+appear in all capitals.
 
-The goal: a user or a script that knows one veripublica tool already knows how
-to drive the next — same flags, same output naming, same exit codes — and one
-tool can consume another's output without special-casing.
+The goal: a user or a script that knows one veripublica tool already knows how to
+drive the next — same flags, same output naming, same exit codes — and one tool
+can consume another's output without special-casing.
+
+Two principles run through every rule below:
+
+- **Data never takes its meaning from its position.** Every path and value is
+  named by the option that carries it. The only bare word a tool understands is a
+  subcommand — a verb from a closed set the parser can validate.
+- **When intent is ambiguous, stop loudly.** A tool never guesses, never silently
+  drops, corrects, or picks a survivor among conflicting instructions.
 
 ---
 
 ## 1. Invocation
 
 ```
-<tool> [OPTIONS] [<input>]
-<tool> <subcommand> [OPTIONS] [<input>]
+<tool> [OPTIONS]
+<tool> <subcommand> [OPTIONS]
 ```
 
-- A **single-purpose** tool (e.g. epubveri, epubsana) MAY have no subcommand: it
+- A **single-purpose** tool (e.g. epubveri, epubsana) MAY have no subcommands: it
   performs its one action by default.
 - A **multi-purpose** tool (e.g. epublift) SHOULD group actions under
   subcommands, and MAY still have a default action when none is given.
+- The **only bare token** a tool accepts is a subcommand name from its own fixed
+  vocabulary. Every other bare token is a usage error (exit `2`): a path or a
+  value MUST NOT be accepted positionally.
 
 ## 2. Input
 
-- Every tool **MUST** accept its input via `-i, --input <PATH>`.
-- A tool **SHOULD** also accept a single **positional** `<PATH>` as sugar, so
-  `tool book.epub` works. `-i` wins if both are given.
-- `-` **MAY** mean stdin where a tool supports streaming.
+- A tool that takes a user-supplied input **MUST** accept it via
+  `-i, --input <PATH>`, and **MUST NOT** accept a positional path.
+- What the path may name — a file, a directory, an archive — is the tool's own
+  business, documented in its help.
+- A **transformer** (a tool that writes a transformed output file) takes
+  **exactly one** input. A second `-i` is a usage error: exit `2`, saying how
+  many inputs were expected and how many were given. The tool MUST NOT silently
+  keep the last.
+- A **verifier** (a tool that reads and reports, writing no output file) MAY
+  accept more than one input, by repeating `-i`. See [§6](#6-exit-codes) for how
+  the exit code aggregates.
+- `-` has no special meaning; there is no stdin input. (An EPUB is a ZIP; reading
+  a ZIP requires seeking, and stdin does not seek.)
+- Batch work belongs to the shell, which already solves it:
 
-## 3. Reserved options
+  ```
+  find . -name '*.epub' -print0 | xargs -0 -n1 epubsana -i
+  ```
+
+## 3. Options
+
+### 3.1 Reserved options
 
 These names have the **same meaning in every tool**. A tool implements the ones
-that apply to it and **MUST NOT** repurpose them for anything else.
+that apply to it (see [§8](#8-conformance)) and **MUST NOT** repurpose them.
+Reserved names bind **exact spellings**, not prefixes: `--image-format` does not
+collide with `--format`. The one-line descriptions below are canonical — help
+text SHOULD reproduce them verbatim (see [§7](#7-help)).
 
 | Option | Meaning |
 | --- | --- |
-| `-i, --input <PATH>` | Input file. Positional input SHOULD also be accepted. |
-| `-o, --output <PATH>` | Output file (tools that produce one). See [§4](#4-output-and-file-safety). |
-| `--format <human\|json>` | Output/report format. `human` is the default. `json` MUST follow [FORMATS.md](./FORMATS.md). A tool MAY offer extra formats (e.g. `ids`), but `human` and `json` are reserved. |
-| `--dry-run` | Compute and report what would happen; change nothing on disk. |
-| `-y, --yes` | Assume "yes" for every prompt; run non-interactively. |
+| `-i, --input <PATH>` | The input. The only input form; positional paths are not accepted. |
+| `-o, --output <PATH>` | Where to write the output. See [§4](#4-output-and-file-safety) for the default and the safety rules. |
+| `-f, --force` | Permit replacing existing output files. Never lifts the output-equals-input refusal. |
+| `--format <FORMAT>` | Report format. `human` (the default) is always supported; `json` is reserved for [FORMATS.md](./FORMATS.md). |
+| `--dry-run` | Report what would happen; change nothing on disk. |
+| `-y, --yes` | Assume "yes" for every prompt; run non-interactively. Not permission to overwrite files — that is `-f`. |
 | `-q, --quiet` | Suppress non-essential output. Errors still go to stderr. |
-| `-v, --verbose` | Emit more detail. |
-| `-V, --version` | Print `<tool> <semver>` and exit `0`. |
-| `-h, --help` | Print help and exit `0`. |
-| `--` | End of options; everything after is positional. |
+| `-v, --verbose` | Emit more detail. Boolean: there are no verbosity levels. |
+| `-V, --version` | Print `<tool> <semver>` to stdout and exit `0`. |
+| `-h, --help` | Print help to stdout and exit `0`. See [§7](#7-help). |
+| `--` | Not used. A tool MAY accept and ignore it; it MUST NOT give it any other meaning. |
 
-Tools **MAY** add their own options and subcommands freely; the rule is only
-that the reserved names above keep their defined meaning.
+### 3.2 The short-flag set is closed
+
+Short flags are drawn **only** from the reserved set above. Every other option is
+**long-form only** (`--quality`, `--profile`, `--goal`, …).
+
+- Extending the set is a convention change — an issue on this repository — never
+  a tool's own call. The set stays closed *because* nobody can open it locally.
+- A tool's existing option name is changed only when it collides with the
+  reserved set — never for taste. A long option that collides with nothing stays
+  exactly as shipped.
+
+### 3.3 Accepted syntaxes
+
+Every tool, hand-rolled or library-parsed, accepts the same spellings:
+
+- A long option with a value: both `--name VALUE` and `--name=VALUE` **MUST** be
+  accepted.
+- A short option with a value: both `-n VALUE` and the attached `-nVALUE`
+  **MUST** be accepted.
+- Short flags that take no value **MUST** be accepted bundled: `-qv` ≡ `-q -v`.
+- A value-taking flag inside a bundle follows plain **POSIX semantics**: the
+  first value-taking flag consumes the remainder of the token — or, if the
+  remainder is empty, the next argument — as its value. `-iv` therefore means
+  `-i v` in every tool. A tool MUST NOT give a bundle any other interpretation.
+- Documentation and examples **MUST NOT** show a value-taking flag inside a
+  bundle. The convention parses `tar -xzvf` style consistently; it does not
+  teach it.
+- The token following an option that takes a value is **always** that value, and
+  is never re-parsed as an option: `-i -q.epub` names the file `-q.epub`.
+
+### 3.4 Repetition
+
+| Given more than once | Behaviour |
+| --- | --- |
+| A boolean flag (`-v -v`, `-qq`) | Same as once. MUST NOT be an error. |
+| Opposing booleans (`-q … -v`) | The last one on the command line wins. |
+| A single-valued option (`--format x --format y`) | Usage error, exit `2` — two answers to one question; the tool does not guess. |
+| A multi-valued option (a verifier's `-i`) | Accumulates. |
+
+> Implementation note: `clap`'s default boolean errors on repetition; declare
+> repeatable booleans with `ArgAction::Count` and read them as `> 0`.
+
+### 3.5 Unrecognized tokens and values
+
+- A token that is not a recognized option, subcommand, or option-value is a
+  **usage error**: exit `2`, a short message on stderr that points at `--help`
+  (see [§5](#5-streams-prompts-and-color)). A tool MAY suggest a near match
+  (*"did you mean `-V`?"*).
+- An option-argument outside the option's defined set is a **usage error**: exit
+  `2`, never a silent fallback or correction. The message **MUST** list the
+  values the tool does support. Value names are lowercase and matched exactly.
+- This applies to reserved-but-unimplemented values: a tool that has not
+  implemented `json` **MUST** reject `--format json`. Reserving a name is not
+  supporting it.
+
+### 3.6 `--format`
+
+- Every tool — and every subcommand — **MUST** accept `--format`, supporting at
+  least `human`, which is the default.
+- `human` output is for people and MAY change freely. `json` is reserved for the
+  shared machine format ([FORMATS.md](./FORMATS.md), currently provisional).
+  Tools MAY add their own formats (e.g. epubveri's `ids`).
+
+### 3.7 `--dry-run`
+
+- **MUST NOT** write, create, truncate, or delete any file.
+- **MUST** perform every check the real run performs before doing work, and fail
+  identically — the [§4](#4-output-and-file-safety) refusals included.
+  `tool --dry-run … && tool …` must never surprise on the second half; a dry run
+  that "succeeds" where the real run would refuse is a false plan.
+- Exit code: `0` — the real run would have nothing to change; `1` — actions
+  would be performed or problems would remain; `2` — the invocation could not
+  run.
 
 ## 4. Output and file safety
 
-For any tool that writes a transformed file:
+For any tool that writes files:
 
 - The tool **MUST NOT** modify the input in place. The original is always left
-  untouched; the user decides whether to delete it afterwards.
+  untouched; deleting it afterwards is the user's decision, never the tool's.
+  (A tool MAY work on a private temporary copy internally; that is an
+  implementation detail.)
 - If `-o` is not given, the default output path **MUST** be
-  `<input-stem>_<verb>.epub`, in the input's directory, where `<verb>` names the
-  operation and is fixed per tool/subcommand — e.g. `_fixed` (epubsana repair),
-  `_repaired` / `_meta` / `_v3.3` (epublift). This makes outputs predictable and
-  self-describing.
-- The output path **MUST NOT** be equal to the input path. If `-o` resolves to
-  the input, the tool **MUST** refuse with an error (exit `2`) rather than
-  overwrite.
-- A tool **MAY** work on a private temporary copy internally, but this is an
-  implementation detail; the guarantees above are what matter.
+  **`<input-stem>_<verb><ext>`**, in the input's directory, where:
+  - `<verb>` names the operation and is fixed per tool/subcommand — `_fixed`
+    (epubsana), `_repaired` / `_meta` / `_v3.3` (epublift);
+  - `<ext>` is the natural extension of the **output** — usually the input's,
+    but not necessarily; compound extensions (`_v3.3.kepub.epub`) are fine.
+  - An **extension-changing transformer** — one whose operation *is* the format
+    change (`import book.pdf` → `book.epub`) — MAY omit `<verb>`: the changed
+    extension is already self-describing and cannot collide with the input.
+  - The two properties this rule guarantees, for judging future cases:
+    **predictability** (the user can name the output before running the tool)
+    and **non-collision with the input**.
+- The output path **MUST NOT** equal the input path. If `-o` resolves to the
+  input, the tool **MUST** refuse: exit `2`. `-f` does **not** lift this.
+- A tool **MUST NOT** silently overwrite **any** existing file it is about to
+  write — the primary output or an auxiliary one (a report). It **MUST** refuse
+  (exit `2`) with a message naming both the path and the way through:
+  `error: 'book_fixed.epub' exists; use -f to replace it`.
+- Overwrite permission is **never** obtained by prompt; only `-f` grants it.
+  (A prompt would be answered by `-y` — and `-y` MUST NOT imply `-f`.)
 
-## 5. Streams
+## 5. Streams, prompts, and color
+
+**Streams.**
 
 - The **primary result** (the `human` report, or the `json` document) goes to
-  **stdout**.
-- **Diagnostics, progress, and interactive prompts** go to **stderr**.
-- This lets `<tool> --format json input.epub > out.json` capture clean,
-  parseable output while messages still reach the user.
+  **stdout**. Diagnostics, progress, warnings, and prompts go to **stderr**.
+- Requested help (`-h`, `--help`) and version (`-V`, `--version`) are the
+  primary result: **stdout**, exit `0`.
+- A **usage error** goes to **stderr** and exits `2`: a short message naming the
+  problem, plus a pointer to `--help` — never the full help text.
+- A help request **short-circuits**: if `-h`/`--help` appears as an option token
+  anywhere on the line, the tool prints help and exits `0`, even if the rest of
+  the line is malformed. If both help and version are requested, help wins.
+- A bare invocation is not a special case: missing required input is an ordinary
+  usage error (`error: missing required -i; see --help`), not a help dump.
+- Errors SHOULD begin `error: `; warnings SHOULD begin `warning: `.
+- All user-facing text — help, errors, warnings, reports — is **English**.
+  Localization belongs to GUI layers built on top of the CLI, not to the CLI.
+
+**Prompts.**
+
+- A tool **MUST NOT** prompt when **stdin is not a TTY**.
+- When a tool needs a decision it cannot obtain, it **MUST** stop: exit `2`,
+  with a message on stderr naming the option that would let it proceed
+  (`--yes`, `--auto-safe`). It **MUST NOT** silently assume "no" and return an
+  exit code that looks like an ordinary result.
+- A tool **MUST NOT** prompt when `-y, --yes` is given; it proceeds as though
+  the user accepted.
+- A tool MAY have no prompts at all; these rules bind only tools that prompt.
+
+**Color.**
+
+- A tool MAY colorize `human` output. A tool that does:
+  - MAY color a stream **only while that stream is a TTY** — checked per stream
+    (stdout and stderr each on their own);
+  - **MUST** disable color everywhere when the `NO_COLOR` environment variable
+    is set to any value;
+  - **MUST NOT** ever colorize `--format json` output.
+- A tool MAY offer `--color <auto|always|never>`; `auto` is the default and
+  means the rules above. Precedence: an explicit `--color always|never` on the
+  command line > `NO_COLOR` > `auto`.
+- Prompting keys on **stdin**'s TTY-ness; color keys on the TTY-ness of **the
+  stream being written**. Different questions, different streams.
 
 ## 6. Exit codes
 
 | Code | Meaning |
 | --- | --- |
-| `0` | Success. For a **verifier**: the input is valid/clean. For a **transformer**: the operation completed and the result meets its goal (e.g. the book is fully valid after repair, or was already). |
-| `1` | Completed, but problems remain. For a **verifier**: the input is invalid (errors found). For a **transformer**: unresolved problems remain (e.g. the repairer could not clear every error). |
-| `2` | The tool could not run: bad arguments, unreadable/corrupt input, an output-equals-input refusal, or an I/O failure. Nothing meaningful was produced. |
+| `0` | Success. For a **verifier**: every input is valid/clean. For a **transformer**: the operation completed and the result meets its goal. |
+| `1` | Completed, but problems remain. For a **verifier**: every input was processed; at least one has findings. For a **transformer**: unresolved problems remain. |
+| `2` | The tool could not run, or could not process at least one input: usage errors, unreadable or corrupt input, the [§4](#4-output-and-file-safety) refusals, an unanswerable prompt ([§5](#5-streams-prompts-and-color)), an I/O failure. |
 
-Rationale: `1` vs `0` lets a script branch on "is it actually good?"
-(`tool book.epub && echo ok`), while `2` is reserved for "the tool itself
-failed," so the two are never confused.
+- A multi-input verifier **MUST** process every input it was given and report on
+  each, even when an earlier one could not be processed. Stopping at the first
+  failure throws away work already done and makes a CI job discover its broken
+  inputs one run at a time. Exit `2` for a multi-input run therefore means *"at
+  least one input could not be processed"* — the reports for the others still
+  appear. (`grep` behaves this way.)
+- Rationale: `1` vs `0` lets a script branch on "is it actually good?", while
+  `2` means "the tool itself could not do its job" — and a tool that silently
+  answered its own prompt, or silently skipped an input, would be reporting the
+  first while meaning the second. The two are never conflated.
 
-## 7. Versioning & conformance
+## 7. Help
+
+- `-h` and `--help` print the **same** text.
+- Help **MUST** contain:
+  - a **usage synopsis** — the invocation form(s);
+  - the **complete options list** — every option the tool accepts, one line
+    each; value-taking options show their metavar (`--goal <openable|valid>`);
+    defaults are stated; `-v` and `-V` are thereby visible side by side;
+  - for a subcommand tool: the **subcommand list**, with per-subcommand help via
+    `tool <sub> --help`, under these same rules.
+- Help **SHOULD** contain:
+  - an **EXAMPLES** section — at least one common invocation, with a comment;
+  - an **EXIT CODES** summary, in the tool's own terms (*"0 — the book is valid
+    after repair (or was already)"*);
+  - a **conformance line** naming a tagged version: *"Conforms to veripublica
+    conventions v0.2."*
+- Reserved options SHOULD be described with the canonical one-liners from
+  [§3.1](#31-reserved-options), verbatim — read once, recognized in every tool.
+- **Help is the reference; the error message is the front line.** Nobody reads
+  manuals, everybody reads errors: every usage error names the problem, names
+  the way through (`--help`, `-f`, `--yes`, the supported values), and lands the
+  user here.
+
+## 8. Conformance
+
+A tool **conforms to veripublica conventions vX** when both hold:
+
+1. it satisfies every rule above that **applies to it**; and
+2. any reserved name it implements carries the **meaning defined here**.
+
+There are no conformance levels. "Applies to it" is decided by this table:
+
+| Rules | Required when |
+| --- | --- |
+| `-h`, `-V`, `--format` (§3.6), accepted syntaxes (§3.3), repetition (§3.4), unrecognized-token handling (§3.5), streams (§5), exit codes (§6), help (§7) | **Always** |
+| `-i` and the no-positional rule (§2) | The tool takes a user-supplied input |
+| `-o`, output naming and file safety (§4), `-f` | The tool writes files |
+| `-y` and the prompt rules (§5) | The tool prompts |
+| `--format json` ([FORMATS.md](./FORMATS.md)), `--dry-run`, `-q`, `-v`, `--color` | **Never** — but when implemented, with the defined meaning |
+
+A verifier needs no `-o` and no `--dry-run`; a tool with no prompts needs no
+`-y`. That is why there are no levels: "full conformance" would name a target no
+tool should even want to reach.
+
+The claim — *"conforms to veripublica conventions v0.2"* — names the convention's
+**stability key** (see [§9](#9-versioning)), and a tag with that prefix (e.g.
+`v0.2.0`) MUST exist: a claim against `main`, or against an untagged version,
+points at a moving document and asserts nothing.
+
+## 9. Versioning
 
 - Tools use [SemVer](https://semver.org/). Before a tool's own `v1.0.0`, its CLI
   MAY still change.
-- This convention is itself `0.x`: while below `1.0.0`, any rule here MAY change.
-  See [CONTRIBUTING.md](./CONTRIBUTING.md#4-versioning).
-- A tool SHOULD state the convention version it targets (in `--help`, README, or
-  docs), e.g. *"conforms to veripublica conventions v0.1."* The version named
-  MUST be one that has been tagged; a claim against `main` points at a moving
-  document.
+- This convention is versioned with SemVer and is itself `0.x`: while below
+  `1.0.0`, any rule MAY change, and the **stability boundary is the minor
+  version** (`0.1` → `0.2` may break anything). From `1.0.0` on, the boundary is
+  the major version. The version prefix at that boundary — `0.2` today, `1`
+  after `1.0.0` — is the convention's **stability key**: the string tools claim
+  ([§8](#8-conformance)) and machine output carries
+  ([FORMATS.md](./FORMATS.md)).
+- How changes are proposed, decided, batched, and released — and what a major,
+  minor, or patch bump means for a specification — is
+  [CONTRIBUTING.md](./CONTRIBUTING.md)'s subject.
+
+## 10. Prior art — and departures
+
+**No RFC governs command-line syntax.** RFC 2119 and RFC 8174, cited in the
+preamble, define the requirement keywords and nothing else in this document. The
+rules above descend from two non-RFC sources, and from one de facto convention:
+
+- **POSIX** (IEEE Std 1003.1, Utility Conventions) — short-option syntax and
+  option-argument semantics, including the bundle rules §3.3 adopts;
+- the **GNU Coding Standards** — long options, `--help`/`--version`, and the
+  registry model behind §3.1: a table of names kept consistent across programs;
+- **[no-color.org](https://no-color.org/)** — the `NO_COLOR` convention §5
+  adopts; a de facto convention, not a standard.
+
+Where this convention departs from those sources, it departs deliberately; each
+departure was argued in the linked issue:
+
+- **Input is named, never positional** (§2; [#16]) — against GNU's advice that
+  ordinary arguments be the input files.
+- **`--format` is required, not merely registered** (§3.6; [#8]) — GNU's option
+  table never even fixes its meaning.
+- **A repeated single-valued option is an error** (§3.4; [#18]) — against the
+  getopt tradition of letting the last occurrence win.
+- **No stdin `-`, and `--` is accepted-and-ignored** (§2, §3.1; [#16], [#3]) —
+  POSIX's operand machinery removed along with the operands themselves.
+- **Short flags come only from a closed set** (§3.2; [#17]) — stricter than
+  either source imagines.
+
+The recurring justification: POSIX and GNU serve hundreds of independent
+programs, where uniformity can only ever be advisory. These are a handful of
+tools in one pipeline with one owner, where explicitness and loud failure are
+worth more than matching a reflex.
+
+[#3]: https://github.com/veripublica/conventions/issues/3
+[#8]: https://github.com/veripublica/conventions/issues/8
+[#16]: https://github.com/veripublica/conventions/issues/16
+[#17]: https://github.com/veripublica/conventions/issues/17
+[#18]: https://github.com/veripublica/conventions/issues/18
