@@ -30,7 +30,7 @@ a contract: its shape is stable within the convention's stability boundary
 
 ---
 
-## The envelope
+## 1. The envelope
 
 Every `--format json` invocation prints **one** JSON object to stdout:
 
@@ -56,7 +56,7 @@ Every `--format json` invocation prints **one** JSON object to stdout:
 }
 ```
 
-### Envelope fields
+### 1.1 Envelope fields
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -68,7 +68,7 @@ Every `--format json` invocation prints **one** JSON object to stdout:
 | `summary` | object | Tool-specific counts (small, flat). Optional. |
 | `items` | array | The findings / fixes / operations. May be empty. |
 
-### Item fields
+### 1.2 Item fields
 
 Each item is an object. These fields are **shared** — a consumer can rely on
 them across tools — and a tool MAY add more under `data`:
@@ -87,7 +87,7 @@ them across tools — and a tool MAY add more under `data`:
 Fields that don't apply MAY be omitted. Consumers MUST ignore unknown fields
 (so tools can extend `data` without breaking anyone).
 
-## Guarantees — from the first implementation on
+## 2. Guarantees — from the first implementation on
 
 - Exactly one JSON object on stdout; nothing else on stdout in `json` mode. The
   output is never colorized ([CLI.md §5](./CLI.md#5-streams-prompts-and-color)).

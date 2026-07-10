@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if page.title and page.url != "/" %}{{ page.title }} — {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+    <meta name="description" content="{{ site.description }}" />
+    <link rel="stylesheet" href="{{ '/assets/tokens.css' | relative_url }}" />
+    <link rel="stylesheet" href="{{ '/assets/site.css' | relative_url }}" />
+  </head>
+  <body>
+    <main>
+      {% if page.url != "/" %}
+      <header class="site-header">
+        <a class="home" href="{{ '/' | relative_url }}">← <strong>{{ site.title }}</strong></a>
+      </header>
+      {% endif %}
+
+      {{ content }}
+
+      <footer>
+        <a href="https://github.com/veripublica/conventions">Source on GitHub</a> ·
+        licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> — a
+        convention is meant to be adopted.
+        <nav class="family">
+          A <a href="https://github.com/veripublica">veripublica</a> project ·
+          <a href="https://github.com/veripublica/epubveri">epubveri</a>
+          <a href="https://github.com/veripublica/epubsana">epubsana</a>
+          <a href="https://github.com/veripublica/epublift">epublift</a>
+          <span>conventions</span>
+        </nav>
+      </footer>
+    </main>
+  </body>
+</html>

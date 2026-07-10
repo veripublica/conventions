@@ -1,0 +1,34 @@
+/* veripublica family-web — tokens.css — template v1
+ * https://github.com/veripublica/family-web
+ *
+ * The family's design tokens: one copy. Extracted 2026-07-10 from
+ * epubveri-wasm and epubsana-wasm's demo pages, where this block was
+ * byte-identical. Consumers copy this file next to their demo page and link
+ * it; local overrides go in the page's own stylesheet, never in a fork of
+ * this one.
+ */
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #666;
+  --border: #ddd;
+  --card: #f7f7f8;
+  --ok: #1a7f37;
+  --err: #cf222e;
+  --warn: #9a6700;
+  --accent: #4b3fce;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16161a;
+    --fg: #e8e8ea;
+    --muted: #9a9aa2;
+    --border: #33333a;
+    --card: #1f1f25;
+    --ok: #4ac26b;
+    --err: #ff6b74;
+    --warn: #d9a441;
+    --accent: #9d94ff;
+  }
+}

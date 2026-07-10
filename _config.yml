@@ -6,6 +6,16 @@
 #                                     any front matter (kept as plain Markdown)
 #   - jekyll-relative-links     -> [x](./CLI.md) links resolve to the rendered page
 # Update the Markdown on the main branch and the site rebuilds automatically.
+#
+# The look is the family's own: assets/tokens.css is a verbatim copy from
+# veripublica/family-web (template v1, never edited here), assets/site.css is
+# the docs layer on top, and _layouts/default.html is the page shell — the
+# same colors, type, and footer nav as the tools' WASM demos.
 title: veripublica conventions
 description: Shared CLI, exit-code, file-naming, and JSON-output conventions for veripublica tools.
-theme: jekyll-theme-cayman
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
