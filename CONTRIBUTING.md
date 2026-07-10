@@ -49,6 +49,18 @@ There is one exception, and it must be named as such:
 Anything else invented here — before any tool implements it — is **provisional**
 and must say so in its own document.
 
+A second principle governs how alternatives are weighed once a rule *has* earned
+its place:
+
+**Rules are chosen on merit. The specification leads; the tools follow.**
+
+What a tool currently does is evidence of what is broken, and an input to
+migration sequencing — never the argument for what the rule should be. A past
+mistake in a released tool (a misused reserved name, a silent fallback) is a cost
+to schedule, not a constraint to design around: the tools are updated one at a
+time, release by release, and the order is free to loop back when a migration
+teaches us something.
+
 ## 3. How a change happens
 
 **1. Propose.** Open an issue. State what breaks without the rule, not just what
