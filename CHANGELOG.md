@@ -11,16 +11,11 @@ boundary is the **minor** version: `0.1` → `0.2` may break anything.
 
 ## [Unreleased]
 
-Accepted proposals are batched here before a release; see the
-[open issues](https://github.com/veripublica/conventions/issues).
-
-### Accepted, not yet written into the documents
-
-- [#5](https://github.com/veripublica/conventions/issues/5) — a tool MUST NOT
-  prompt when stdin is not a TTY, nor when it reads its input from stdin; when a
-  decision cannot be obtained it MUST stop with exit `2` rather than silently
-  answer "no". Affects CLI.md §5 and §6. A **safety carve-out**: no tool detects a
-  terminal today.
+Decisions that have been taken but not yet written into the documents are the
+**open issues labelled [`accepted`](https://github.com/veripublica/conventions/issues?q=is%3Aopen+label%3Aaccepted)**.
+That label is the queue; this section is filled in by the pull request that ships
+them. Listing them here as well would be a second copy to keep in step, and it
+would drift.
 
 ### Fixed
 

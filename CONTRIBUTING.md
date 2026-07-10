@@ -71,6 +71,11 @@ was rejected along the way.
 single pull request writes the accumulated decisions into the documents, closes
 the issues (`Closes #N`), updates `CHANGELOG.md`, and is released with a tag.
 
+`CHANGELOG.md` is written **at this point, not at step 3**. The `accepted` label
+is the only queue; a parallel list in `Unreleased` would be a second copy of the
+same state, and the two would drift. (They did, within a day, the first time this
+was tried.)
+
 Batching is deliberate. If every decision landed on `main` the moment it was
 made, the tools would be chasing a moving target — conforming one day and not the
 next. Tools track **releases**, not `main`.
