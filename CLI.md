@@ -1,6 +1,6 @@
 # veripublica CLI convention
 
-**Version 0.2.0.** The command-line contract every veripublica tool follows. The
+**Version 0.3.0.** The command-line contract every veripublica tool follows. The
 key words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are to be interpreted as
 described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they
@@ -79,6 +79,17 @@ text SHOULD reproduce them verbatim (see [§7](#7-help)).
 | `-V, --version` | Print `<tool> <semver>` to stdout and exit `0`. |
 | `-h, --help` | Print help to stdout and exit `0`. See [§7](#7-help). |
 | `--` | Not used. A tool MAY accept and ignore it; it MUST NOT give it any other meaning. |
+
+The `<semver>` printed by `-V` MAY carry **SemVer build metadata** pinning the
+exact source: `+<short-hash>`, with `.dirty` appended when the working tree had
+uncommitted changes at build time — `epubveri 0.4.4+ca06641`. Build metadata is
+part of a valid SemVer string and is ignored for precedence, so the reserved
+shape is unchanged for every consumer. When the hash is unavailable (notably a
+crates.io tarball build, which has no `.git`) the tool **MUST** fall back
+silently to the plain version: a published release is pinned by its tag; the
+hash pins the builds *between* tags. One string, everywhere: the CLI's `-V`, a
+wasm crate's `version()`, and a demo page's footer print the same value from
+the same source.
 
 ### 3.2 The short-flag set is closed
 
@@ -261,7 +272,7 @@ For any tool that writes files:
   - an **EXIT CODES** summary, in the tool's own terms (*"0 — the book is valid
     after repair (or was already)"*);
   - a **conformance line** naming a tagged version: *"Conforms to veripublica
-    conventions v0.2."*
+    conventions v0.3."*
 - Reserved options SHOULD be described with the canonical one-liners from
   [§3.1](#31-reserved-options), verbatim — read once, recognized in every tool.
 - **Help is the reference; the error message is the front line.** Nobody reads
@@ -290,9 +301,9 @@ A verifier needs no `-o` and no `--dry-run`; a tool with no prompts needs no
 `-y`. That is why there are no levels: "full conformance" would name a target no
 tool should even want to reach.
 
-The claim — *"conforms to veripublica conventions v0.2"* — names the convention's
+The claim — *"conforms to veripublica conventions v0.3"* — names the convention's
 **stability key** (see [§9](#9-versioning)), and a tag with that prefix (e.g.
-`v0.2.0`) MUST exist: a claim against `main`, or against an untagged version,
+`v0.3.0`) MUST exist: a claim against `main`, or against an untagged version,
 points at a moving document and asserts nothing.
 
 ## 9. Versioning
