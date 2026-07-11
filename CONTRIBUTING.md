@@ -53,6 +53,16 @@ There is one exception, and it must be named as such:
 Anything else invented here — before any tool implements it — is **provisional**
 and must say so in its own document.
 
+The same principle, sharpened for a reserved value **set** (severities, item
+outcomes, short flags):
+
+**No value is invented for an unnamed need.**
+
+A spare value reserved *"in case someone needs it"* is born meaningless and
+decays into a dumping ground no consumer can branch on. The protection against
+tomorrow's need is not a blank value today; it is the extension path: the tool
+that hits the need opens an issue, the value is reserved, a release ships it.
+
 A second principle governs how alternatives are weighed once a rule *has* earned
 its place:
 
