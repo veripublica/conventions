@@ -40,7 +40,7 @@ brief, a conforming tool:
 2. Gives any reserved name it implements the meaning defined there (it may add
    its own long-form options and subcommands on top).
 3. States the convention version it targets — in its `--help`, its README, or
-   its docs (e.g. *"conforms to veripublica conventions v0.3"*) — and that
+   its docs (e.g. *"conforms to veripublica conventions v0.4"*) — and that
    version is **tagged**.
 
 `--format json` is **not** required for conformance while
@@ -54,7 +54,7 @@ defined interface. Likewise it may be pure-Rust or anything else.
 ## Versioning
 
 This convention is versioned with [SemVer](https://semver.org/). Current version:
-**0.3.0** — while below `1.0.0`, any rule MAY change, and the stability boundary
+**0.4.0** — while below `1.0.0`, any rule MAY change, and the stability boundary
 is the **minor** version. This is deliberate: the contract is being settled
 before any tool reaches its own `v1.0.0`, which is the cheapest time to settle
 it. See [CONTRIBUTING.md](./CONTRIBUTING.md) for how a change is proposed,
@@ -62,13 +62,15 @@ decided, and released.
 
 ## Status
 
-The rule set is settled at `0.3.0` — twenty-one proposals discussed and decided
-(the issues record each decision and its rationale). [FORMATS.md](./FORMATS.md)
-remains provisional: its shape is now able to describe every invocation the CLI
-rules allow, and it hardens with the first implementation. The tools adopt
-sequentially — epubveri, then epubsana, then epublift — each tracked by an
-issue on its own repository; the spec leads, the tools follow, release by
-release.
+The rule set is settled at `0.4.0` — twenty-four proposals discussed and decided
+(the issues record each decision and its rationale). The last three came out of
+the first adoption work — the tools' own feedback, handled through the same
+propose–decide–ship loop — which is the process working as designed.
+[FORMATS.md](./FORMATS.md) remains provisional: its shape is now able to
+describe every invocation the CLI rules allow, and it hardens with the first
+implementation. The tools adopt sequentially — epubveri, then epubsana, then
+epublift — each tracked by an issue on its own repository; the spec leads, the
+tools follow, release by release.
 
 ## License
 

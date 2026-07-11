@@ -1,6 +1,6 @@
 # veripublica machine-output format
 
-**Version 0.3.0 — PROVISIONAL.**
+**Version 0.4.0 — PROVISIONAL.**
 
 > **No tool emits this envelope yet.** This document is a design proposal, not an
 > observed contract: its shape MAY change without a major (or, while `0.x`,
@@ -39,7 +39,7 @@ inputs that could not be processed are described *inside* it.
 {
   "tool": "epubveri",
   "tool_version": "0.5.0",
-  "convention": "0.3",
+  "convention": "0.4",
   "status": "error",
   "dry_run": false,
   "inputs": [
@@ -90,9 +90,10 @@ same fact its human output already prints (`wrote book_fixed.epub`):
   "items": [
     {
       "type": "fix",
+      "outcome": "applied",
       "code": "RSC-016",
       "rule": "htm.entity.undeclared",
-      "severity": "info",
+      "severity": "error",
       "location": "OEBPS/ch1.xhtml",
       "message": "Mapped 774 undeclared HTML entities to characters",
       "data": { "occurrences": 774 }
@@ -107,9 +108,9 @@ same fact its human output already prints (`wrote book_fixed.epub`):
 | --- | --- | --- |
 | `tool` | string | The tool's name (e.g. `"epubveri"`). |
 | `tool_version` | string | The tool's SemVer. |
-| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.3"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. |
-| `status` | string | Mirror of the exit code, aggregated over the inputs: `"ok"` (every input clean / every goal met) → `0`; `"problems"` (every input processed; findings remain) → `1`; `"error"` (**at least one input could not be processed**) → `2`. A tool that could not run at all emits no envelope. |
-| `dry_run` | boolean | `true` when the run was `--dry-run`: the identical shape, items describing what *would* be done, `output` naming what *would* be written. Absent means `false`. |
+| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.4"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. |
+| `status` | string | Mirror of the exit code, aggregated over the inputs: `"ok"` (every input clean / every goal met) → `0`; `"problems"` (every input processed; error- or fatal-severity findings, or an unmet goal, remain — [CLI.md §6](./CLI.md#6-exit-codes)'s threshold) → `1`; `"error"` (**at least one input could not be processed**) → `2`. A tool that could not run at all emits no envelope. |
+| `dry_run` | boolean | `true` when the run was `--dry-run`: the identical shape, items describing what *would* be done (every item's `outcome` is `"proposed"`), `output` naming what *would* be written. Absent means `false`. The flag is a summary of the items; the two can never disagree. |
 | `summary` | object | Optional aggregate counts (small, flat, tool-specific). Derivable from the inputs; a consumer MUST NOT require it. |
 | `inputs` | array | One **input object** per `-i`, **in command-line order** — an array even when there is exactly one. |
 
@@ -128,6 +129,12 @@ reuse the shape as-is.
 | `summary` | object | Tool-specific counts for this input (small, flat). Optional. |
 | `items` | array | The findings / fixes / operations for this input. May be empty. |
 
+`status: "error"` means **no report was possible** — it never grades a verdict.
+A defect the tool can still name with a code, however severe (a
+`fatal`-severity finding included), is a *verdict*: the input is `"problems"`,
+and the finding is in `items`, where a consumer — a repairer above all — can
+plan against it.
+
 ### 1.3 Item fields
 
 Each item is an object. These fields are **shared** — a consumer can rely on
@@ -136,9 +143,10 @@ them across tools — and a tool MAY add more under `data`:
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `type` | string | Item kind: `"finding"` (verifier), `"fix"` (repairer), `"operation"` (transformer). |
+| `outcome` | string | What happened to the item: `"applied"`, `"skipped"`, or `"proposed"`. **Required** on `"fix"` and `"operation"` items; never present on `"finding"` items. See below. |
 | `code` | string | The stable, tool-facing code — for EPUB tools, the epubcheck-compatible message ID (e.g. `"RSC-005"`). |
 | `rule` | string | Optional finer sub-code (e.g. `"ncx.ids.invalid_ncname"`). |
-| `severity` | string | `"error"`, `"warning"`, or `"info"`. |
+| `severity` | string | One of `"fatal"`, `"error"`, `"warning"`, `"info"`, `"usage"` — epubcheck's vocabulary, completing the `code` contract. See below. |
 | `location` | string | Container-relative path the item concerns, if any. |
 | `position` | object | `{ "line": N, "column": N }` (1-indexed), if known. |
 | `message` | string | Human-readable one-liner. |
@@ -146,6 +154,28 @@ them across tools — and a tool MAY add more under `data`:
 
 Fields that don't apply MAY be omitted. Consumers MUST ignore unknown fields
 (so tools can extend `data` without breaking anyone).
+
+**`severity`** is a reserved value **set**, not a requirement: a tool emits
+only the values it has a concept of — a non-EPUB tool that never has a `usage`
+finding simply never emits one. The set is **closed**: a new value enters by
+issue and release
+([CONTRIBUTING §2](./CONTRIBUTING.md#2-the-governing-principle): *no value is
+invented for an unnamed need*), never through `data`. On a `fix` or
+`operation` item, `severity` is **inherited** — the severity of the finding
+the item addresses, verbatim from the detector — never how noteworthy the
+report line is. Severities below `error` never move the exit code
+([CLI.md §6](./CLI.md#6-exit-codes)). `usage`-severity items are always
+present in `json`: the envelope is for machines, which filter;
+suppression-by-default is a `human`-surface concern.
+
+**`outcome`** carries *"did, or would?"* per item, because a consent-per-fix
+repairer routinely mixes both in one ordinary run. `"applied"` — the change
+was made. `"skipped"` — presented and not done: the caller declined.
+`"proposed"` — no decision exists yet: a dry run, or a consent that arrives
+after the report. Under `dry_run: true` every item is `"proposed"`. A
+transformer that always applies everything stamps `"applied"` on every item —
+the field being **required** on `fix`/`operation` items is what keeps its
+absence from meaning anything. The value set is closed, like `severity`'s.
 
 ## 2. What is standard, and what is each tool's
 

@@ -1,6 +1,6 @@
 # veripublica CLI convention
 
-**Version 0.3.0.** The command-line contract every veripublica tool follows. The
+**Version 0.4.0.** The command-line contract every veripublica tool follows. The
 key words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are to be interpreted as
 described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they
@@ -242,10 +242,29 @@ For any tool that writes files:
 
 | Code | Meaning |
 | --- | --- |
-| `0` | Success. For a **verifier**: every input is valid/clean. For a **transformer**: the operation completed and the result meets its goal. |
-| `1` | Completed, but problems remain. For a **verifier**: every input was processed; at least one has findings. For a **transformer**: unresolved problems remain. |
-| `2` | The tool could not run, or could not process at least one input: usage errors, unreadable or corrupt input, the [§4](#4-output-and-file-safety) refusals, an unanswerable prompt ([§5](#5-streams-prompts-and-color)), an I/O failure. |
+| `0` | Success. For a **verifier**: every input processed; no error- or fatal-severity findings. For a **transformer**: the operation completed and its goal was met. |
+| `1` | Completed, but problems remain. For a **verifier**: every input processed; at least one error- or fatal-severity finding remains. For a **transformer**: the goal was not met — declined fixes, or defects the tool cannot fix, remain. |
+| `2` | The tool could not run, or could not process at least one input: usage errors, unreadable input, the [§4](#4-output-and-file-safety) refusals, an unanswerable prompt ([§5](#5-streams-prompts-and-color)), an I/O failure. |
 
+- **The `0`/`1` line sits at error severity and above.** A finding below it —
+  warning, info, usage ([FORMATS.md §1.3](./FORMATS.md#13-item-fields)) — is
+  worth *reporting*, not worth *flagging*: it appears in the report and never
+  moves the exit code. A script that wants to fail on warnings is asking a
+  different question, and that is a tool-owned option's job, never the
+  default's.
+- **A verdict is not a failure.** For a verifier, corruption it can still
+  produce a report on is a *verdict* — exit `0` or `1` by the threshold above,
+  the findings in the report (a `fatal`-severity finding included). Exit `2`'s
+  "could not process" means **no report was possible** for that input: a
+  missing file, an unreadable one, an I/O failure.
+- **A transformer's default goal is the verifier's threshold** — no error- or
+  fatal-severity findings remain — so the two tools' `0` agrees by
+  construction. A tool offering an explicitly-requested **lesser** goal
+  (epubsana's `--goal openable`) defines that goal's success condition in its
+  own `--help`. Under such a goal, exit `0` can coexist with error-severity
+  findings in the report: the exit code answers the question the invocation
+  asked. The goal knob itself stays the tool's own option, never the
+  convention's.
 - A multi-input verifier **MUST** process every input it was given and report on
   each, even when an earlier one could not be processed. Stopping at the first
   failure throws away work already done and makes a CI job discover its broken
@@ -272,7 +291,7 @@ For any tool that writes files:
   - an **EXIT CODES** summary, in the tool's own terms (*"0 — the book is valid
     after repair (or was already)"*);
   - a **conformance line** naming a tagged version: *"Conforms to veripublica
-    conventions v0.3."*
+    conventions v0.4."*
 - Reserved options SHOULD be described with the canonical one-liners from
   [§3.1](#31-reserved-options), verbatim — read once, recognized in every tool.
 - **Help is the reference; the error message is the front line.** Nobody reads
@@ -301,9 +320,9 @@ A verifier needs no `-o` and no `--dry-run`; a tool with no prompts needs no
 `-y`. That is why there are no levels: "full conformance" would name a target no
 tool should even want to reach.
 
-The claim — *"conforms to veripublica conventions v0.3"* — names the convention's
+The claim — *"conforms to veripublica conventions v0.4"* — names the convention's
 **stability key** (see [§9](#9-versioning)), and a tag with that prefix (e.g.
-`v0.3.0`) MUST exist: a claim against `main`, or against an untagged version,
+`v0.4.0`) MUST exist: a claim against `main`, or against an untagged version,
 points at a moving document and asserts nothing.
 
 ## 9. Versioning
@@ -313,7 +332,7 @@ points at a moving document and asserts nothing.
 - This convention is versioned with SemVer and is itself `0.x`: while below
   `1.0.0`, any rule MAY change, and the **stability boundary is the minor
   version** (`0.1` → `0.2` may break anything). From `1.0.0` on, the boundary is
-  the major version. The version prefix at that boundary — `0.2` today, `1`
+  the major version. The version prefix at that boundary — `0.4` today, `1`
   after `1.0.0` — is the convention's **stability key**: the string tools claim
   ([§8](#8-conformance)) and machine output carries
   ([FORMATS.md](./FORMATS.md)).
