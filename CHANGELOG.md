@@ -17,6 +17,65 @@ That label is the queue; this section is filled in by the pull request that ship
 them. Listing them here as well would be a second copy to keep in step, and it
 would drift.
 
+## [0.4.0] — 2026-07-11
+
+Three decisions (#23, #24, #25), one batch — the first shaped by adoption:
+epubveri hit two spec wrinkles implementing v0.3's envelope, and epubsana
+answered the discussion invite with the third. FORMATS.md **remains
+provisional**: the stability guarantee still begins with the first
+implementation.
+
+### Changed — the severity vocabulary (#23)
+
+- **`severity` becomes the five-value reserved set
+  `fatal | error | warning | info | usage`** — epubcheck's vocabulary,
+  completing the epubcheck-compatible `code` contract. A reserved value *set*:
+  a tool emits only the values it has a concept of. The set is **closed** — a
+  new value enters by issue + release, never through `data` (the corollary now
+  recorded in CONTRIBUTING §2: *no value is invented for an unnamed need*).
+- **On a `fix`/`operation` item, `severity` is inherited** — the severity of
+  the finding the item addresses, verbatim from the detector, never how
+  noteworthy the report line is. The transformer example's `RSC-016` fix now
+  reads `"error"`.
+- **`usage` items are always present in `json`**; suppression-by-default is a
+  `human`-surface concern, and a display opt-in stays tool-owned.
+- **A coded `fatal` finding makes its input `status: "problems"`, never
+  `"error"`** — `"error"` keeps meaning *no report was possible*, never *the
+  verdict was very bad*. CLI.md §6's exit-`2` wording follows: "unreadable",
+  no longer "corrupt" — a verdict is not a failure.
+
+### Changed — the exit-code / `status` threshold (#24)
+
+- **The verifier's `0`/`1` line sits at error severity and above**: warning,
+  info, and usage findings are reported, never flagged. `0` = every input
+  processed, no error/fatal-severity findings; `1` = at least one remains.
+- **The transformer's threshold defines its default goal** — no error- or
+  fatal-severity findings remain — so a transformer's `0` means what a
+  verifier's `0` means, by construction. An explicitly-requested lesser goal
+  (epubsana's `--goal openable`) defines its own success condition in the
+  tool's `--help`; under such a goal, exit `0` can coexist with error-severity
+  findings in the report — the exit code answers the question the invocation
+  asked. `--goal` itself stays tool-owned.
+- **Deferred**: a shared `goal` field. One tool has the concept; promotion
+  waits for the second, by issue.
+
+### Added — item `outcome` (#25)
+
+- **`outcome` is a shared item field**: `"applied" | "skipped" | "proposed"`.
+  Required on `fix`/`operation` items, never present on `finding` items; under
+  `dry_run: true` every item is `"proposed"`, demoting the top-level flag to a
+  summary of the items — the two can never disagree. Declined on the record: a
+  `"failed"` value (no tool has named the need); tool-owned `data.outcome`
+  (a fact a consumer needs to read the report correctly cannot live in the
+  half consumers cannot rely on); a normative line without a field (drift by
+  another name).
+
+### Non-normative, shipped on `main` since 0.3.0
+
+- CONTRIBUTING.md §2 records the first principle's corollary for reserved
+  value sets: **no value is invented for an unnamed need** — the protection
+  against tomorrow's need is the extension path, not a blank value today.
+
 ## [0.3.0] — 2026-07-11
 
 Two decisions (#20, #21), one batch. FORMATS.md's envelope is redesigned while
@@ -162,7 +221,8 @@ document instead of a moving `main`.
   "major version" and is under discussion in
   [#12](https://github.com/veripublica/conventions/issues/12).
 
-[Unreleased]: https://github.com/veripublica/conventions/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/veripublica/conventions/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/veripublica/conventions/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/veripublica/conventions/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/veripublica/conventions/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/veripublica/conventions/releases/tag/v0.1.0
