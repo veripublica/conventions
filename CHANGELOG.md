@@ -17,6 +17,34 @@ That label is the queue; this section is filled in by the pull request that ship
 them. Listing them here as well would be a second copy to keep in step, and it
 would drift.
 
+## [0.4.1] — 2026-07-13
+
+One decision (#27) and one recorded fact, no rule changes — a **patch** by
+CONTRIBUTING §4's discipline: nothing a conforming tool must do changes, and
+the stability key stays `0.4`, which epubveri (v0.5.x) and epubsana (v0.2.0)
+ship claiming today.
+
+### Changed — FORMATS.md is no longer provisional
+
+- **epubveri v0.5.0 (2026-07-11) shipped the first `--format json`; epubsana
+  v0.2.0 followed.** By the provisional notice's own terms the stability
+  guarantee began at that first implementation — the release records the fact
+  (banner replaced with the implemented-as-of record; provisional references
+  in CLI.md §3.6 and README updated). The guarantee was activated by the
+  implementation, not by this release.
+
+### Added — reference-implementation pointer (#27)
+
+- FORMATS.md §2 points, **non-normatively**, at the envelope's reference Rust
+  types: `epubveri::envelope`, generic over the two tool-owned slots, used by
+  epubveri and epubsana — with the promotion trigger on the record:
+  extraction to a `veripublica-envelope` crate the day a veripublica tool
+  that does **not** depend on epubveri needs the envelope. The decision is
+  CONTRIBUTING §2's promotion rule applied to implementation shapes; no new
+  rule was needed, and none was added. (The type-shape review conventions was
+  asked for lives on
+  [epubveri#14](https://github.com/veripublica/epubveri/issues/14).)
+
 ## [0.4.0] — 2026-07-11
 
 Three decisions (#23, #24, #25), one batch — the first shaped by adoption:
@@ -221,7 +249,8 @@ document instead of a moving `main`.
   "major version" and is under discussion in
   [#12](https://github.com/veripublica/conventions/issues/12).
 
-[Unreleased]: https://github.com/veripublica/conventions/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/veripublica/conventions/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/veripublica/conventions/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/veripublica/conventions/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/veripublica/conventions/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/veripublica/conventions/compare/v0.1.0...v0.2.0

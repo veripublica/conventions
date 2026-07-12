@@ -27,7 +27,7 @@ reporting) would live in a separate document if the need arises.
 | Document | Covers |
 | --- | --- |
 | [CLI.md](./CLI.md) | Invocation shape, the reserved options every tool shares, output-file naming, and exit codes. |
-| [FORMATS.md](./FORMATS.md) | The machine-readable output (`--format json`): a shared envelope so one tool can consume another's output without bespoke parsing. **Provisional** — no tool emits it yet; the name is reserved, the shape is a design proposal. |
+| [FORMATS.md](./FORMATS.md) | The machine-readable output (`--format json`): a shared envelope so one tool can consume another's output without bespoke parsing. **Implemented** — an observed contract since epubveri v0.5.0, stable within the stability boundary. |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | What belongs in this repository, how a change is proposed and decided, versioning, and how the tools keep up. |
 
 ## How a tool conforms
@@ -43,9 +43,10 @@ brief, a conforming tool:
    its docs (e.g. *"conforms to veripublica conventions v0.4"*) — and that
    version is **tagged**.
 
-`--format json` is **not** required for conformance while
-[FORMATS.md](./FORMATS.md) is provisional; a tool that has not implemented it
-rejects the value rather than approximating it.
+`--format json` is **not** required for conformance
+([CLI.md §8](./CLI.md#8-conformance): never required — but when implemented, it
+carries the defined meaning); a tool that has not implemented it rejects the
+value rather than approximating it.
 
 The convention specifies **behaviour, not implementation.** A tool may parse its
 arguments by hand or with a library (e.g. `clap`); it only has to expose the
@@ -54,7 +55,7 @@ defined interface. Likewise it may be pure-Rust or anything else.
 ## Versioning
 
 This convention is versioned with [SemVer](https://semver.org/). Current version:
-**0.4.0** — while below `1.0.0`, any rule MAY change, and the stability boundary
+**0.4.1** — while below `1.0.0`, any rule MAY change, and the stability boundary
 is the **minor** version. This is deliberate: the contract is being settled
 before any tool reaches its own `v1.0.0`, which is the cheapest time to settle
 it. See [CONTRIBUTING.md](./CONTRIBUTING.md) for how a change is proposed,
@@ -62,15 +63,13 @@ decided, and released.
 
 ## Status
 
-The rule set is settled at `0.4.0` — twenty-four proposals discussed and decided
-(the issues record each decision and its rationale). The last three came out of
-the first adoption work — the tools' own feedback, handled through the same
-propose–decide–ship loop — which is the process working as designed.
-[FORMATS.md](./FORMATS.md) remains provisional: its shape is now able to
-describe every invocation the CLI rules allow, and it hardens with the first
-implementation. The tools adopt sequentially — epubveri, then epubsana, then
-epublift — each tracked by an issue on its own repository; the spec leads, the
-tools follow, release by release.
+The rule set is settled at `0.4.1` — twenty-five proposals discussed and decided
+(the issues record each decision and its rationale), the last four out of the
+tools' own adoption work: the propose–decide–ship loop working as designed.
+[FORMATS.md](./FORMATS.md) hardened on schedule: **epubveri v0.5.0** shipped the
+first `--format json` and **epubsana v0.2.0** followed — the envelope is an
+observed contract, stable within the stability boundary. epublift adopts next;
+the spec leads, the tools follow, release by release.
 
 ## License
 

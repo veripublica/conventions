@@ -1,6 +1,6 @@
 # veripublica CLI convention
 
-**Version 0.4.0.** The command-line contract every veripublica tool follows. The
+**Version 0.4.1.** The command-line contract every veripublica tool follows. The
 key words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are to be interpreted as
 described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they
@@ -151,7 +151,7 @@ Every tool, hand-rolled or library-parsed, accepts the same spellings:
 - Every tool — and every subcommand — **MUST** accept `--format`, supporting at
   least `human`, which is the default.
 - `human` output is for people and MAY change freely. `json` is reserved for the
-  shared machine format ([FORMATS.md](./FORMATS.md), currently provisional).
+  shared machine format ([FORMATS.md](./FORMATS.md)).
   Tools MAY add their own formats (e.g. epubveri's `ids`).
 
 ### 3.7 `--dry-run`

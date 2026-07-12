@@ -1,28 +1,24 @@
 # veripublica machine-output format
 
-**Version 0.4.0 — PROVISIONAL.**
+**Version 0.4.1.**
 
-> **No tool emits this envelope yet.** This document is a design proposal, not an
-> observed contract: its shape MAY change without a major (or, while `0.x`,
-> minor) version bump **until the first tool ships it** — the stability
-> guarantee below begins at that first implementation, not before.
->
-> The shape was redesigned in
-> [#21](https://github.com/veripublica/conventions/issues/21) (multi-input,
-> dry runs, a transformer's written output) precisely so the first
-> implementation — epubveri's — does not harden an envelope that cannot
-> describe its own tool's invocations.
+> **Implemented.** epubveri **v0.5.0** (2026-07-11) shipped the first
+> `--format json`; epubsana **v0.2.0** followed. The envelope is an **observed
+> contract**: from those releases on, its shape is stable within the
+> convention's stability boundary ([CLI.md §9](./CLI.md#9-versioning)) — the
+> guarantee this document carried as a promise while it was provisional
+> (v0.1.0–v0.4.0).
 >
 > The `json` format name is reserved by
-> [CLI.md §3](./CLI.md#3-options) regardless: a tool that has not implemented it
-> **rejects** `--format json` rather than falling back to `human`.
+> [CLI.md §3](./CLI.md#3-options) for every tool: one that has not implemented
+> it **rejects** `--format json` rather than falling back to `human`.
 
-This document specifies the JSON a tool will emit under `--format json`, so one
+This document specifies the JSON a tool emits under `--format json`, so one
 veripublica tool (or any external program — Sigil, Calibre, a CI job) can consume
 another's output without bespoke parsing.
 
-`human` format is for people and MAY change freely. `json`, once implemented, is
-a contract: its shape is stable within the convention's stability boundary
+`human` format is for people and MAY change freely. `json` is a contract: its
+shape is stable within the convention's stability boundary
 ([CLI.md §9](./CLI.md#9-versioning)).
 
 ---
@@ -190,7 +186,16 @@ The bridge between the two is the same rule the CLI uses for option names
 is born in **one** tool; when a **second** tool needs the same key, it is
 promoted to a shared item field — by an issue on this repository, not by drift.
 
-## 3. Guarantees — from the first implementation on
+A **reference implementation** of the skeleton exists — non-normative: the
+JSON above is the contract, the types are a convenience. It lives in
+[`epubveri::envelope`](https://github.com/veripublica/epubveri) (the reference
+tool), generic over the two tool-owned slots (`summary`, `data`), and is used
+by epubveri and epubsana. It stays there until a veripublica tool that does
+**not** depend on epubveri needs the envelope, at which point it moves to its
+own crate — the promotion rule above, applied to implementation shapes
+([#27](https://github.com/veripublica/conventions/issues/27)).
+
+## 3. Guarantees
 
 - Exactly one JSON object on stdout; nothing else on stdout in `json` mode. The
   output is never colorized ([CLI.md §5](./CLI.md#5-streams-prompts-and-color)).
@@ -200,6 +205,7 @@ promoted to a shared item field — by an issue on this repository, not by drift
 - The envelope's skeleton is shared; `summary` and `items[].data` are each
   tool's own and documented in that tool's docs.
 
-Until the first implementation ships, none of the above binds anyone — that is
-what **provisional** means. It is written in contract language so that adopting
-it, when the time comes, is a decision rather than a rewrite.
+All of the above binds since epubveri v0.5.0 (2026-07-11), the first
+implementation — the moment the provisional period was defined to end. The
+document spent four versions provisional, in contract language, precisely so
+that hardening, when it came, was a decision rather than a rewrite.
