@@ -27,7 +27,7 @@ reporting) would live in a separate document if the need arises.
 | Document | Covers |
 | --- | --- |
 | [CLI.md](./CLI.md) | Invocation shape, the reserved options every tool shares, output-file naming, and exit codes. |
-| [FORMATS.md](./FORMATS.md) | The machine-readable output (`--format json`): a shared envelope so one tool can consume another's output without bespoke parsing. **Implemented** — an observed contract since epubveri v0.5.0, stable within the stability boundary. |
+| [FORMATS.md](./FORMATS.md) | The machine-readable output (`--format json`): a shared envelope so one tool can consume another's output without bespoke parsing. **Implemented** — an observed contract since epubveri v0.5.0, with two emitters and a consumer outside both. |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | What belongs in this repository, how a change is proposed and decided, versioning, and how the tools keep up. |
 
 ## How a tool conforms
@@ -40,7 +40,7 @@ brief, a conforming tool:
 2. Gives any reserved name it implements the meaning defined there (it may add
    its own long-form options and subcommands on top).
 3. States the convention version it targets — in its `--help`, its README, or
-   its docs (e.g. *"conforms to veripublica conventions v0.4"*) — and that
+   its docs (e.g. *"conforms to veripublica conventions v0.5"*) — and that
    version is **tagged**.
 
 `--format json` is **not** required for conformance
@@ -55,7 +55,7 @@ defined interface. Likewise it may be pure-Rust or anything else.
 ## Versioning
 
 This convention is versioned with [SemVer](https://semver.org/). Current version:
-**0.4.1** — while below `1.0.0`, any rule MAY change, and the stability boundary
+**0.5.0** — while below `1.0.0`, any rule MAY change, and the stability boundary
 is the **minor** version. This is deliberate: the contract is being settled
 before any tool reaches its own `v1.0.0`, which is the cheapest time to settle
 it. See [CONTRIBUTING.md](./CONTRIBUTING.md) for how a change is proposed,
@@ -63,13 +63,17 @@ decided, and released.
 
 ## Status
 
-The rule set is settled at `0.4.1` — twenty-five proposals discussed and decided
-(the issues record each decision and its rationale), the last four out of the
+The rule set is settled at `0.5.0` — twenty-seven proposals discussed and decided
+(the issues record each decision and its rationale), the last of them out of the
 tools' own adoption work: the propose–decide–ship loop working as designed.
-[FORMATS.md](./FORMATS.md) hardened on schedule: **epubveri v0.5.0** shipped the
-first `--format json` and **epubsana v0.2.0** followed — the envelope is an
-observed contract, stable within the stability boundary. epublift adopts next;
-the spec leads, the tools follow, release by release.
+[FORMATS.md](./FORMATS.md) hardened on schedule and is now a **live** contract —
+two emitters (**epubveri**, **epubsana**) and a real consumer outside both
+codebases: the Sigil and calibre plugins in
+[`veripublica/epubveri-plugins`](https://github.com/veripublica/epubveri-plugins)
+parse the envelope by field name. `0.5.0` is the first release to **reverse** a
+normative sentence rather than add one, which is why the stability key moves to
+`0.5`. epublift adopts next; the spec leads, the tools follow, release by
+release.
 
 ## License
 
