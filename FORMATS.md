@@ -1,6 +1,6 @@
 # veripublica machine-output format
 
-**Version 0.4.1.**
+**Version 0.5.0.**
 
 > **Implemented.** epubveri **v0.5.0** (2026-07-11) shipped the first
 > `--format json`; epubsana **v0.2.0** followed. The envelope is an **observed
@@ -34,21 +34,21 @@ inputs that could not be processed are described *inside* it.
 ```json
 {
   "tool": "epubveri",
-  "tool_version": "0.5.0",
-  "convention": "0.4",
+  "tool_version": "0.14.0",
+  "convention": "0.5",
   "status": "error",
   "dry_run": false,
   "inputs": [
     {
       "path": "a.epub",
       "status": "ok",
-      "summary": { "errors": 0, "warnings": 0 },
+      "summary": { "fatals": 0, "errors": 0, "warnings": 0, "infos": 0, "usages": 0 },
       "items": []
     },
     {
       "path": "b.epub",
       "status": "problems",
-      "summary": { "errors": 3, "warnings": 1 },
+      "summary": { "fatals": 0, "errors": 3, "warnings": 1, "infos": 0, "usages": 0 },
       "items": [
         {
           "type": "finding",
@@ -72,7 +72,10 @@ inputs that could not be processed are described *inside* it.
 
 This run exits `2` (at least one input could not be processed,
 [CLI.md §6](./CLI.md#6-exit-codes)) — and still carries the full reports for
-`a.epub` and `b.epub`: the process-every-input rule, in JSON form.
+`a.epub` and `b.epub`: the process-every-input rule, in JSON form. Note
+`c.epub`: no verdict was possible, so it carries **no** `summary` at all — its
+`status` and `error` are the whole answer, and there are no counters to report
+([§1.4](#14-counters-and-what-a-filtered-run-must-record)).
 
 A **transformer**'s input object additionally reports **what it wrote** — the
 same fact its human output already prints (`wrote book_fixed.epub`):
@@ -82,7 +85,13 @@ same fact its human output already prints (`wrote book_fixed.epub`):
   "path": "book.epub",
   "status": "ok",
   "output": "book_fixed.epub",
-  "summary": { "errors_before": 150, "errors_after": 0, "applied": 2, "skipped": 0 },
+  "summary": {
+    "fatals_before": 0, "errors_before": 150, "warnings_before": 12,
+    "infos_before": 0, "usages_before": 4,
+    "fatals_after": 0, "errors_after": 0, "warnings_after": 12,
+    "infos_after": 0, "usages_after": 4,
+    "applied": 2, "skipped": 0, "proposed": 0
+  },
   "items": [
     {
       "type": "fix",
@@ -104,10 +113,10 @@ same fact its human output already prints (`wrote book_fixed.epub`):
 | --- | --- | --- |
 | `tool` | string | The tool's name (e.g. `"epubveri"`). |
 | `tool_version` | string | The tool's SemVer. |
-| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.4"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. |
+| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.5"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. The key is **asserted by the emitting tool about itself**: a shared implementation takes it from the tool rather than stamping its own, so that a tool never claims a version it has not implemented by inheriting one from a dependency. |
 | `status` | string | Mirror of the exit code, aggregated over the inputs: `"ok"` (every input clean / every goal met) → `0`; `"problems"` (every input processed; error- or fatal-severity findings, or an unmet goal, remain — [CLI.md §6](./CLI.md#6-exit-codes)'s threshold) → `1`; `"error"` (**at least one input could not be processed**) → `2`. A tool that could not run at all emits no envelope. |
 | `dry_run` | boolean | `true` when the run was `--dry-run`: the identical shape, items describing what *would* be done (every item's `outcome` is `"proposed"`), `output` naming what *would* be written. Absent means `false`. The flag is a summary of the items; the two can never disagree. |
-| `summary` | object | Optional aggregate counts (small, flat, tool-specific). Derivable from the inputs; a consumer MUST NOT require it. |
+| `summary` | object | Optional aggregate counts (small, flat, tool-specific). Derivable from the inputs; a consumer MUST NOT require it. What its counters must report, and what a filtered run must record in it, are in [§1.4](#14-counters-and-what-a-filtered-run-must-record). |
 | `inputs` | array | One **input object** per `-i`, **in command-line order** — an array even when there is exactly one. |
 
 ### 1.2 Input object fields
@@ -122,7 +131,7 @@ reuse the shape as-is.
 | `status` | string | `"ok"`, `"problems"`, or `"error"` — this input alone. |
 | `error` | string | Present only with `status: "error"`: why this input could not be processed. (Named `error`, not `message` — `message` already means something at the item layer.) |
 | `output` | string | Transformers only: the path written — or, under `dry_run`, the path that would be written. The report states the facts of the run; what a consumer does with the path is not this specification's business. |
-| `summary` | object | Tool-specific counts for this input (small, flat). Optional. |
+| `summary` | object | Tool-specific counts for this input (small, flat). Optional — see [§1.4](#14-counters-and-what-a-filtered-run-must-record). |
 | `items` | array | The findings / fixes / operations for this input. May be empty. |
 
 `status: "error"` means **no report was possible** — it never grades a verdict.
@@ -160,9 +169,10 @@ invented for an unnamed need*), never through `data`. On a `fix` or
 `operation` item, `severity` is **inherited** — the severity of the finding
 the item addresses, verbatim from the detector — never how noteworthy the
 report line is. Severities below `error` never move the exit code
-([CLI.md §6](./CLI.md#6-exit-codes)). `usage`-severity items are always
-present in `json`: the envelope is for machines, which filter;
-suppression-by-default is a `human`-surface concern.
+([CLI.md §6](./CLI.md#6-exit-codes)). An invocation MAY withhold items of a
+severity from the report; when it does, it withholds them from **every** format
+the run can emit, and the envelope records it — see
+[§1.4](#14-counters-and-what-a-filtered-run-must-record).
 
 **`outcome`** carries *"did, or would?"* per item, because a consent-per-fix
 repairer routinely mixes both in one ordinary run. `"applied"` — the change
@@ -173,13 +183,102 @@ transformer that always applies everything stamps `"applied"` on every item —
 the field being **required** on `fix`/`operation` items is what keeps its
 absence from meaning anything. The value set is closed, like `severity`'s.
 
+### 1.4 Counters, and what a filtered run must record
+
+`summary`'s keys are each tool's own vocabulary ([§2](#2-what-is-standard-and-what-is-each-tools)).
+Two rules bind it anyway, and both are **conditional**: they reach a tool only
+where it has already chosen to do the thing they describe.
+
+**A counter over a closed set reports every member.** A counter keyed by a
+closed value set **this specification declares** — `severity`, `outcome` —
+reports **every member the tool has a concept of**, including zero, and the set
+does not vary from run to run.
+
+- *Has a concept of* is [§1.3](#13-item-fields)'s existing test, not a new one: a
+  non-EPUB tool that never has a `usage` finding counts no usages, and a
+  repairer whose build cannot revert reports no `reverted`. It does **not** mean
+  *whatever the tool's summary happens to list today* — that reading would let a
+  tool decline every member by declaring none.
+- It is not one-dimensional. A tool that counts a severity in two tenses
+  (`errors_before`, `errors_after`) reports every member it has a concept of in
+  each tense.
+- This does not contradict *"fields that don't apply MAY be omitted"*: that
+  permission is about fields that do not apply, and a counter over a set the
+  tool observes always applies. Zero is an answer; absence is not.
+
+**A filtered run records that it was filtered.** Where an invocation withholds
+items from the report, the summary object carrying the affected counters names
+those severities in **`suppressed`**:
+
+```json
+"summary": { "fatals": 0, "errors": 2, "warnings": 1, "infos": 0, "usages": 0,
+             "suppressed": ["usage"] }
+```
+
+The counter keys above are one tool's own spelling — `summary`'s vocabulary is
+tool-owned ([§2](#2-what-is-standard-and-what-is-each-tools)), and another tool's
+may be singular, or tensed. `suppressed`'s **values** are not: they are severity
+names from [§1.3](#13-item-fields)'s set.
+
+- `suppressed` records **the gate**: the severities for which a format-level
+  filter was in effect, whether or not it removed anything on this run. Absent
+  or empty means **no format-level filter was in effect** — every item the run
+  produced is present. It is a completeness marker, not a "something is hidden"
+  flag: it answers *can I trust this counter?*
+- A severity named there may be **incompletely represented** in `items` and in
+  the counters: the format holds some or none of what the run produced at that
+  severity.
+- It lives in the **same object as the counters it qualifies**, per-input
+  summaries included. A qualifier that a consumer can read without reading the
+  claim it qualifies is not a qualifier.
+- **No count of what was withheld is required.** A tool that filters at source
+  cannot count what it never produced, and nothing in this specification obliges
+  it to.
+- `suppressed` is a **reserved non-counter member** of the summary object.
+  Summing a summary's values was never safe — a tool's own vocabulary may hold
+  tenses, outcomes and strings in one object — and this makes it plainly unsafe.
+
+**Omission may not dodge the marker.** A run that applies a format-level filter
+**MUST NOT** omit a summary object it would otherwise emit. For an input that
+**produced a report** while a filter was in effect the marker MUST be present —
+a tool that emits no summary for such an input emits one carrying `suppressed`
+alone, which is conformant because the counter rule above is conditional and
+that object has no counter to complete. An input that produced **no** report —
+no verdict was possible — carries no summary and no marker: its `status` already
+says the counters do not exist, and a missing summary makes no claim about
+filtering in either direction. *Absent or empty means no filter* is about
+`suppressed` **within** a summary object, never about a summary that is not
+there.
+
+**What counts as suppression.** The same run's own report holds the item and a
+format does not. A run that produced fewer items because it was **asked a
+narrower question** — a flag that selects which checks run, a profile, a version
+— has withheld nothing and records nothing.
+
+**Two limits.**
+
+- Suppression may hide what was **found**; never what was **done**. An item
+  recording a change made to the user's file is never withheld. A verifier
+  hiding a finding hides information about the book; a repairer hiding an
+  applied `fix` would hide what the tool did to the user's file, which is the one
+  thing a change report exists to state.
+- These rules govern an **envelope**, not an API. Nothing here reaches a
+  library, and that silence is deliberate rather than an omission: a filtered
+  CLI report is recoverable by running again, while a library that answered a
+  question with part of the answer would be unrecoverable by its caller. This
+  document does not legislate there.
+
 ## 2. What is standard, and what is each tool's
 
 **The skeleton is standard**: the envelope fields, the input object, and the
 shared item fields above. Without them a consumer can rely on nothing.
 
 **The flesh is tool-owned**: `summary`'s keys and `items[].data`'s contents are
-each tool's own vocabulary, documented in that tool's docs.
+each tool's own vocabulary, documented in that tool's docs. Tool-owned is not
+unruled: where a tool keys a counter by a closed set this document declares,
+[§1.4](#14-counters-and-what-a-filtered-run-must-record) binds what that counter
+must report — the rules describe the vocabulary a tool has already chosen, they
+do not prescribe one.
 
 The bridge between the two is the same rule the CLI uses for option names
 ([CONTRIBUTING §2](./CONTRIBUTING.md#2-the-governing-principle)): a `data` key
@@ -189,11 +288,15 @@ promoted to a shared item field — by an issue on this repository, not by drift
 A **reference implementation** of the skeleton exists — non-normative: the
 JSON above is the contract, the types are a convenience. It lives in
 [`epubveri::envelope`](https://github.com/veripublica/epubveri) (the reference
-tool), generic over the two tool-owned slots (`summary`, `data`), and is used
-by epubveri and epubsana. It stays there until a veripublica tool that does
-**not** depend on epubveri needs the envelope, at which point it moves to its
-own crate — the promotion rule above, applied to implementation shapes
-([#27](https://github.com/veripublica/conventions/issues/27)).
+tool, `epubveri = "0.13"` at the time of writing), generic over the two
+tool-owned slots (`summary`, `data`), and is used by epubveri and epubsana. It
+stays there until a veripublica **Rust** tool that does **not** depend on
+epubveri needs the envelope, at which point it moves to its own crate — the
+promotion rule above, applied to implementation shapes
+([#27](https://github.com/veripublica/conventions/issues/27)). Because the
+convenience and the contract can drift, a release that touches this document
+carries *"update `epubveri::envelope` or invoke the promotion trigger"* in
+epubveri's tracking issue.
 
 ## 3. Guarantees
 

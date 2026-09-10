@@ -17,6 +17,91 @@ That label is the queue; this section is filled in by the pull request that ship
 them. Listing them here as well would be a second copy to keep in step, and it
 would drift.
 
+## [0.5.0] — 2026-09-10
+
+Two decisions (#29, #30) and the editorial work behind them. A **minor**, and
+the first release to **reverse** a normative sentence rather than add one, so
+the **stability key moves `0.4` → `0.5`**: tools re-declare when they adopt.
+Both decisions came out of adoption — epubveri's shipped divergences, read
+against the documents — and both were argued with the tools before they were
+written.
+
+### Removed — `usage` items are no longer promised in `json`
+
+- FORMATS §1.3's *"`usage`-severity items are always present in `json`: the
+  envelope is for machines, which filter"* is **repealed** (#30). Its reasoning
+  obliged one flag to mean two different things depending on `--format`, which
+  is not a machine-friendly property but an incoherent command line. An
+  invocation MAY now withhold a severity — from **every** format the run emits,
+  never from one — and the envelope must record it.
+
+### Added — FORMATS §1.4, counters and what a filtered run must record
+
+- **A counter over a closed set reports every member the tool has a concept
+  of**, including zero, and the set does not vary run to run. It binds any
+  closed set this document declares — `severity` **and** `outcome` — and every
+  member in each tense a tool counts. Zero is an answer; absence is not.
+- **`suppressed`** — an array of severity names, in the same object as the
+  counters it qualifies, recording **the gate**: the severities a format-level
+  filter was in effect for. Absent or empty means no filter was in effect. A
+  named severity may be **incompletely represented**, and `suppressed` is a
+  reserved **non-counter** member of the summary object.
+- **Omission may not dodge the marker**: a filtered run MUST NOT omit a summary
+  it would otherwise emit, and an input that produced a report under a filter
+  carries the marker. An input that produced **no** report carries neither — its
+  `status` already says the counters do not exist.
+- **Two limits.** Suppression may hide what was *found*, never what was *done*:
+  an item recording a change made to the user's file is never withheld. And
+  these rules govern an envelope, **not** a library — a silence this release
+  records as deliberate.
+- Rule 1 without the marker would have been worse than the defect: unconditional
+  counters alone turn *"the key is absent"* into *"this book has no usage
+  findings"*, which is a false statement rather than an ambiguous one. The two
+  ship together or not at all.
+
+### Added — the stability key is asserted by the emitting tool about itself
+
+- FORMATS §1.1: a shared implementation takes the key from the tool rather than
+  stamping its own (#30). The reference types stamped one crate's constant into
+  a second tool's envelopes, so a routine dependency bump would have made a tool
+  claim a version it had not implemented.
+
+### Added — CLI.md §3.2.1, recorded exceptions
+
+- The short-flag set stays closed, and two exceptions are recorded **by name**:
+  epubveri's `-u, --usage` and `-v, --epub-version <V>` (#29). An exception
+  grants the **spelling**, never the semantics; long names stay universal
+  (`--verbose` is still reserved family-wide); a new row costs an issue, and a
+  tool cannot record its own. A general *"may repurpose a reserved short flag
+  where a reference tool defines it"* clause was **rejected** — it would have
+  licensed taking epubcheck's `-i`, the one outcome the closed set exists to
+  forbid.
+
+### Changed — editorial
+
+- CLI.md §3.4's multi-valued row now points at §2, which already states
+  normatively which tools may repeat `-i`.
+- FORMATS §2's reference-implementation pointer names the version
+  (`epubveri = "0.13"`), repairs #27's promotion trigger to read a **Rust** tool
+  that does not depend on epubveri, and records the maintenance coupling: a
+  release touching FORMATS carries *"update `epubveri::envelope` or invoke the
+  promotion trigger"* in epubveri's tracking issue.
+- FORMATS §2 states that tool-owned is not unruled: §1.4 binds a counter a tool
+  has already chosen to keep, and prescribes no vocabulary.
+- The envelope examples are conformant to the new rules rather than illustrative
+  of the old ones, and the multi-input example now shows an input that produced
+  no verdict carrying no summary at all.
+
+### Decided, not shipped
+
+- **`reverted` joins the `outcome` set** (#31) — accepted with its definition and
+  both boundaries locked, and deliberately **not** written into the documents
+  yet. Its emitter (epubsana#7) is unstarted with no near-term plan, so the value
+  would be emitted by nothing indefinitely; the issue stays open in the
+  `accepted` queue and the text ships in whatever batch is current when the
+  mechanism lands. The reasoning, and the reversal that produced it, are in the
+  issue.
+
 ## [0.4.1] — 2026-07-13
 
 One decision (#27) and one recorded fact, no rule changes — a **patch** by
@@ -250,6 +335,7 @@ document instead of a moving `main`.
   [#12](https://github.com/veripublica/conventions/issues/12).
 
 [Unreleased]: https://github.com/veripublica/conventions/compare/v0.4.1...HEAD
+[0.5.0]: https://github.com/veripublica/conventions/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/veripublica/conventions/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/veripublica/conventions/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/veripublica/conventions/compare/v0.2.0...v0.3.0

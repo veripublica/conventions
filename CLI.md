@@ -1,6 +1,6 @@
 # veripublica CLI convention
 
-**Version 0.4.1.** The command-line contract every veripublica tool follows. The
+**Version 0.5.0.** The command-line contract every veripublica tool follows. The
 key words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are to be interpreted as
 described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they
@@ -102,6 +102,23 @@ Short flags are drawn **only** from the reserved set above. Every other option i
   reserved set — never for taste. A long option that collides with nothing stays
   exactly as shipped.
 
+### 3.2.1 Recorded exceptions
+
+The set is closed. These spellings are the only exceptions on record, and each
+was recorded by an issue on this repository — **a tool cannot record its own**.
+
+| Tool | Short | Long | Recorded |
+| --- | --- | --- | --- |
+| epubveri | `-u` | `--usage` | [#29](https://github.com/veripublica/conventions/issues/29) — epubcheck's spelling |
+| epubveri | `-v` | `--epub-version <V>` | [#29](https://github.com/veripublica/conventions/issues/29) — symmetry with epubcheck's spelling; overrides §3.1's reserved `-v, --verbose` for this tool only |
+
+- An exception grants the **spelling**, never the semantics. It carries no claim
+  that the flag means what the external tool's flag means: epubcheck's `-u` sets
+  a reporting threshold, epubveri's is a boolean.
+- **Long names stay universal.** `--verbose` remains reserved family-wide,
+  epubveri included — a tool that later wants verbosity spells it long.
+- A new row costs an issue, exactly as extending the set does.
+
 ### 3.3 Accepted syntaxes
 
 Every tool, hand-rolled or library-parsed, accepts the same spellings:
@@ -128,7 +145,7 @@ Every tool, hand-rolled or library-parsed, accepts the same spellings:
 | A boolean flag (`-v -v`, `-qq`) | Same as once. MUST NOT be an error. |
 | Opposing booleans (`-q … -v`) | The last one on the command line wins. |
 | A single-valued option (`--format x --format y`) | Usage error, exit `2` — two answers to one question; the tool does not guess. |
-| A multi-valued option (a verifier's `-i`) | Accumulates. |
+| A multi-valued option (a verifier's `-i`) | Accumulates. Which options these are is not open: [§2](#2-input) states normatively that a transformer takes exactly one input, and a verifier is the tool that may repeat `-i`. |
 
 > Implementation note: `clap`'s default boolean errors on repetition; declare
 > repeatable booleans with `ArgAction::Count` and read them as `> 0`.
@@ -291,7 +308,7 @@ For any tool that writes files:
   - an **EXIT CODES** summary, in the tool's own terms (*"0 — the book is valid
     after repair (or was already)"*);
   - a **conformance line** naming a tagged version: *"Conforms to veripublica
-    conventions v0.4."*
+    conventions v0.5."*
 - Reserved options SHOULD be described with the canonical one-liners from
   [§3.1](#31-reserved-options), verbatim — read once, recognized in every tool.
 - **Help is the reference; the error message is the front line.** Nobody reads
@@ -320,9 +337,9 @@ A verifier needs no `-o` and no `--dry-run`; a tool with no prompts needs no
 `-y`. That is why there are no levels: "full conformance" would name a target no
 tool should even want to reach.
 
-The claim — *"conforms to veripublica conventions v0.4"* — names the convention's
+The claim — *"conforms to veripublica conventions v0.5"* — names the convention's
 **stability key** (see [§9](#9-versioning)), and a tag with that prefix (e.g.
-`v0.4.0`) MUST exist: a claim against `main`, or against an untagged version,
+`v0.5.0`) MUST exist: a claim against `main`, or against an untagged version,
 points at a moving document and asserts nothing.
 
 ## 9. Versioning
@@ -332,7 +349,7 @@ points at a moving document and asserts nothing.
 - This convention is versioned with SemVer and is itself `0.x`: while below
   `1.0.0`, any rule MAY change, and the **stability boundary is the minor
   version** (`0.1` → `0.2` may break anything). From `1.0.0` on, the boundary is
-  the major version. The version prefix at that boundary — `0.4` today, `1`
+  the major version. The version prefix at that boundary — `0.5` today, `1`
   after `1.0.0` — is the convention's **stability key**: the string tools claim
   ([§8](#8-conformance)) and machine output carries
   ([FORMATS.md](./FORMATS.md)).
