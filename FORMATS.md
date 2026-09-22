@@ -1,6 +1,6 @@
 # veripublica machine-output format
 
-**Version 0.5.0.**
+**Version 0.6.0.**
 
 > **Implemented.** epubveri **v0.5.0** (2026-07-11) shipped the first
 > `--format json`; epubsana **v0.2.0** followed. The envelope is an **observed
@@ -34,8 +34,8 @@ inputs that could not be processed are described *inside* it.
 ```json
 {
   "tool": "epubveri",
-  "tool_version": "0.14.0",
-  "convention": "0.5",
+  "tool_version": "0.17.0",
+  "convention": "0.6",
   "status": "error",
   "dry_run": false,
   "inputs": [
@@ -113,7 +113,7 @@ same fact its human output already prints (`wrote book_fixed.epub`):
 | --- | --- | --- |
 | `tool` | string | The tool's name (e.g. `"epubveri"`). |
 | `tool_version` | string | The tool's SemVer. |
-| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.5"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. The key is **asserted by the emitting tool about itself**: a shared implementation takes it from the tool rather than stamping its own, so that a tool never claims a version it has not implemented by inheriting one from a dependency. |
+| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.6"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. The key is **asserted by the emitting tool about itself**: a shared implementation takes it from the tool rather than stamping its own, so that a tool never claims a version it has not implemented by inheriting one from a dependency. |
 | `status` | string | Mirror of the exit code, aggregated over the inputs: `"ok"` (every input clean / every goal met) → `0`; `"problems"` (every input processed; error- or fatal-severity findings, or an unmet goal, remain — [CLI.md §6](./CLI.md#6-exit-codes)'s threshold) → `1`; `"error"` (**at least one input could not be processed**) → `2`. A tool that could not run at all emits no envelope. |
 | `dry_run` | boolean | `true` when the run was `--dry-run`: the identical shape, items describing what *would* be done (every item's `outcome` is `"proposed"`), `output` naming what *would* be written. Absent means `false`. The flag is a summary of the items; the two can never disagree. |
 | `summary` | object | Optional aggregate counts (small, flat, tool-specific). Derivable from the inputs; a consumer MUST NOT require it. What its counters must report, and what a filtered run must record in it, are in [§1.4](#14-counters-and-what-a-filtered-run-must-record). |
@@ -148,7 +148,7 @@ them across tools — and a tool MAY add more under `data`:
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `type` | string | Item kind: `"finding"` (verifier), `"fix"` (repairer), `"operation"` (transformer). |
-| `outcome` | string | What happened to the item: `"applied"`, `"skipped"`, or `"proposed"`. **Required** on `"fix"` and `"operation"` items; never present on `"finding"` items. See below. |
+| `outcome` | string | What happened to the item: `"applied"`, `"skipped"`, `"proposed"`, or `"reverted"`. **Required** on `"fix"` and `"operation"` items; never present on `"finding"` items. See below. |
 | `code` | string | The stable, tool-facing code — for EPUB tools, the epubcheck-compatible message ID (e.g. `"RSC-005"`). |
 | `rule` | string | Optional finer sub-code (e.g. `"ncx.ids.invalid_ncname"`). |
 | `severity` | string | One of `"fatal"`, `"error"`, `"warning"`, `"info"`, `"usage"` — epubcheck's vocabulary, completing the `code` contract. See below. |
@@ -178,10 +178,22 @@ the run can emit, and the envelope records it — see
 repairer routinely mixes both in one ordinary run. `"applied"` — the change
 was made. `"skipped"` — presented and not done: the caller declined.
 `"proposed"` — no decision exists yet: a dry run, or a consent that arrives
-after the report. Under `dry_run: true` every item is `"proposed"`. A
+after the report. `"reverted"` — the tool applied this fix and then undid it,
+because applying it produced a defect that was not present before. The fix is
+**not** in the output and the caller did **not** decline it; the finding it
+addressed is unrepaired. Under `dry_run: true` every item is `"proposed"`. A
 transformer that always applies everything stamps `"applied"` on every item —
 the field being **required** on `fix`/`operation` items is what keeps its
 absence from meaning anything. The value set is closed, like `severity`'s.
+
+Two boundaries hold `"reverted"` to that one meaning:
+
+- It means **undone after re-validation**, not *"failed to apply"*. A change
+  the tool could not make — an I/O failure mid-run — is an exit-`2` condition
+  ([CLI.md §6](./CLI.md#6-exit-codes)), never an item outcome.
+- It is **one value, not a family.** Why a fix was reverted is the finding it
+  produced, in the detector's own vocabulary; it belongs in tool-owned `data`,
+  not in a closed set of revert reasons.
 
 ### 1.4 Counters, and what a filtered run must record
 

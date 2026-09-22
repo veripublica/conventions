@@ -17,6 +17,34 @@ That label is the queue; this section is filled in by the pull request that ship
 them. Listing them here as well would be a second copy to keep in step, and it
 would drift.
 
+## [0.6.0] — 2026-09-22
+
+One decision (#31), written in when its emitter arrived. A **minor**: a closed
+value set that gains a member is not an additive change — every consumer that
+switches on `outcome` must now handle a fourth value — so the **stability key
+moves `0.5` → `0.6`**, and tools re-declare when they adopt.
+
+### Added — `reverted`, the fourth `outcome`
+
+- FORMATS §1.3: **`"reverted"`** — the tool applied this fix and then undid it,
+  because applying it produced a defect that was not present before. The fix is
+  not in the output, the caller did not decline it, and the finding it addressed
+  is unrepaired. None of the three existing values could say this truthfully:
+  `skipped` in particular would tell the caller *"you declined this"* about a fix
+  they approved.
+- **Two boundaries** ship with it. It means undone after re-validation, never
+  *"failed to apply"* — an I/O failure stays an exit-`2` condition, which keeps
+  #25's rejection of `"failed"` intact. And it is one value, not a family: revert
+  reasons live in tool-owned `data`, not in a new closed set.
+- §1.4's counter rule already covered it: a repairer that counts outcomes and
+  can revert counts `reverted` beside the others, zero included; one whose build
+  cannot revert reports none. The identity *applied + skipped + proposed + reverted =
+  items* holds by construction.
+- Decided on 2026-09-10 and held back, because its emitter (epubsana#7) was then
+  unstarted and a closed set does not carry a dead member. #7 was built on
+  2026-09-22 and tested against the reference type before this release; the text
+  is the definition as it was locked, unchanged.
+
 ## [0.5.0] — 2026-09-10
 
 Two decisions (#29, #30) and the editorial work behind them. A **minor**, and
@@ -334,7 +362,8 @@ document instead of a moving `main`.
   "major version" and is under discussion in
   [#12](https://github.com/veripublica/conventions/issues/12).
 
-[Unreleased]: https://github.com/veripublica/conventions/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/veripublica/conventions/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/veripublica/conventions/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/veripublica/conventions/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/veripublica/conventions/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/veripublica/conventions/compare/v0.3.0...v0.4.0
