@@ -1,5 +1,5 @@
 /* conventions site — page-local styles on top of the family tokens.
- * tokens.css is a verbatim copy from family-web (template v1) and is never
+ * tokens.css is a verbatim copy from family-web (template v6) and is never
  * edited here; this file is the docs-site layer (typography, tables, code),
  * reusing the family's base values (system-ui 15px, 820px column, muted/
  * accent roles) in a documentation context. If a second docs site appears
@@ -41,11 +41,36 @@ blockquote {
 }
 blockquote p { margin: .3rem 0; }
 
-.site-header { margin-bottom: 1.5rem; }
+/* The header holds the home link (absent on the home page) and the theme
+ * toggle, kept hard right by margin-left: auto either way. */
+.site-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
 .site-header .home { color: var(--muted); text-decoration: none; font-size: .85rem; }
 .site-header .home strong { color: var(--fg); }
 
+/* Theme toggle — the control for tokens.css's data-theme hook, styled as
+ * family-web's demo.css (template v6) styles it: button base + .theme-toggle.
+ * Hidden unless light-dark() works, the same test as tokens.css's floor, so it
+ * is never a control that does nothing. */
+.theme-toggle { display: none; }
+@supports (color: light-dark(#000000, #ffffff)) {
+  .theme-toggle {
+    display: inline-block;
+    margin-left: auto;
+    font: inherit; font-size: .8rem;
+    cursor: pointer;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .25rem .5rem;
+    flex: none;
+  }
+  .theme-toggle:hover { color: var(--fg); border-color: var(--muted); }
+}
+
 footer { margin-top: 3rem; color: var(--muted); font-size: .8rem; border-top: 1px solid var(--border); padding-top: 1rem; }
-/* family-web template v1: the family footer nav */
+/* The family footer nav. The tool links are spaced like family-web's; "here"
+ * marks this site, by weight, as family-web marks the current tool (#8). */
 .family { margin-top: .5rem; }
-.family a, .family span { margin-right: .6rem; white-space: nowrap; }
+.family a { margin-right: .6rem; white-space: nowrap; }
+.family .here { font-weight: 600; white-space: nowrap; }

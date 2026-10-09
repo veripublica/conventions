@@ -7,14 +7,55 @@
     <meta name="description" content="{{ site.description }}" />
     <link rel="stylesheet" href="{{ '/assets/tokens.css' | relative_url }}" />
     <link rel="stylesheet" href="{{ '/assets/site.css' | relative_url }}" />
+    <script>
+      // Theme, part 1 of 2 — from family-web's skeleton.html (template v6).
+      // Inline in <head>, not deferred: it runs before the first paint, so a
+      // reader who chose dark never sees a white flash. Guarded on light-dark(),
+      // as tokens.css's floor is; try/catch because localStorage can throw.
+      try {
+        if (CSS.supports("color", "light-dark(#000,#fff)")) {
+          const t = localStorage.getItem("theme");
+          if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+        }
+      } catch {}
+    </script>
   </head>
   <body>
     <main>
-      {% if page.url != "/" %}
       <header class="site-header">
+        {% if page.url != "/" %}
         <a class="home" href="{{ '/' | relative_url }}">← <strong>{{ site.title }}</strong></a>
+        {% endif %}
+        <!-- Theme, part 2 of 2: top-right, as on every family page (family-web
+             #7). The script follows the button so it is labelled before paint. -->
+        <button class="theme-toggle" id="theme" type="button"></button>
+        <script>
+          (() => {
+            const root = document.documentElement;
+            const btn = document.getElementById("theme");
+            const cycle = ["auto", "dark", "light"];
+            const label = { auto: "◐ auto", dark: "☾ dark", light: "☀ light" };
+            const save = (v) => {
+              try {
+                v ? localStorage.setItem("theme", v) : localStorage.removeItem("theme");
+              } catch {}
+            };
+            const current = () => root.dataset.theme || "auto";
+            const paint = () => {
+              btn.textContent = label[current()];
+              btn.title = "Theme: " + current() + " — click to change";
+            };
+            btn.addEventListener("click", () => {
+              const next = cycle[(cycle.indexOf(current()) + 1) % cycle.length];
+              if (next === "auto") delete root.dataset.theme;
+              else root.dataset.theme = next;
+              save(next === "auto" ? null : next);
+              paint();
+            });
+            paint();
+          })();
+        </script>
       </header>
-      {% endif %}
 
       {{ content }}
 
@@ -24,11 +65,53 @@
         convention is meant to be adopted.
         <nav class="family">
           A <a href="https://github.com/veripublica">veripublica</a> project ·
-          <a href="https://github.com/veripublica/epubveri">epubveri</a>
-          <a href="https://github.com/veripublica/epubsana">epubsana</a>
-          <a href="https://github.com/veripublica/epublift">epublift</a>
-          <span>conventions</span>
+          <!-- The tool list is family-web's (template v6): these links are the
+               fallback, replaced by nav.json when the script below fetches it, so
+               a new tool appears here with no change to this site. No link is
+               aria-current: this site is not one of the tools (family-web #10).
+               "conventions" sits outside #family-tools, so the script leaves it. -->
+          <span id="family-tools">
+            <a href="https://github.com/veripublica/epubveri">epubveri</a>
+            <a href="https://github.com/veripublica/epubsana">epubsana</a>
+            <a href="https://github.com/veripublica/kepubverto">kepubverto</a>
+            <a href="https://github.com/ePubLift/epublift">epublift</a>
+          </span>
+          · <span class="here">conventions</span>
         </nav>
+        <script>
+          // Family nav, from family-web's skeleton.html (template v6): same code, shorter comments.
+          // nav.json is data, not code: turned into links with textContent, never
+          // parsed as HTML or run. A failed fetch leaves the fallback as it was.
+          (() => {
+            const box = document.getElementById("family-tools");
+            const mark = box.querySelector('a[aria-current="page"]');
+            const here = { name: mark?.textContent.trim(), url: mark?.getAttribute("href") };
+            fetch("https://veripublica.github.io/family-web/nav.json")
+              .then((r) => (r.ok ? r.json() : null))
+              .then((data) => {
+                const tools = (Array.isArray(data?.tools) ? data.tools : []).filter(
+                  (t) => typeof t?.name === "string" && /^https:\/\/github\.com\/[^\s]+$/.test(t?.url ?? ""),
+                );
+                if (!tools.length) return;
+                const key = (list) => list.map((t) => t.name + " " + t.url).join("\n");
+                const shown = [...box.querySelectorAll("a")].map((a) => ({
+                  name: a.textContent.trim(),
+                  url: a.getAttribute("href"),
+                }));
+                if (key(tools) === key(shown)) return;
+                box.replaceChildren(
+                  ...tools.flatMap((t) => {
+                    const a = document.createElement("a");
+                    a.href = t.url;
+                    a.textContent = t.name;
+                    if (t.name === here.name || t.url === here.url) a.setAttribute("aria-current", "page");
+                    return [a, " "];
+                  }),
+                );
+              })
+              .catch(() => {});
+          })();
+        </script>
       </footer>
     </main>
   </body>
