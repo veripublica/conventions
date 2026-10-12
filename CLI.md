@@ -1,6 +1,6 @@
 # veripublica CLI convention
 
-**Version 0.6.0.** The command-line contract every veripublica tool follows. The
+**Version 0.7.0.** The command-line contract every veripublica tool follows. The
 key words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are to be interpreted as
 described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they
@@ -99,8 +99,9 @@ Short flags are drawn **only** from the reserved set above. Every other option i
 - Extending the set is a convention change — an issue on this repository — never
   a tool's own call. The set stays closed *because* nobody can open it locally.
 - A tool's existing option name is changed only when it collides with the
-  reserved set — never for taste. A long option that collides with nothing stays
-  exactly as shipped.
+  reserved set **or with a name another tool released first
+  ([§3.2.2](#322-a-long-name-means-one-thing-family-wide))** — never for taste.
+  A long option that collides with nothing stays exactly as shipped.
 
 ### 3.2.1 Recorded exceptions
 
@@ -118,6 +119,29 @@ was recorded by an issue on this repository — **a tool cannot record its own**
 - **Long names stay universal.** `--verbose` remains reserved family-wide,
   epubveri included — a tool that later wants verbosity spells it long.
 - A new row costs an issue, exactly as extending the set does.
+
+### 3.2.2 A long name means one thing family-wide
+
+A long option name that a family tool has released has that tool's meaning in
+**every tool and every subcommand** that uses it. A tool that needs something
+else picks another name.
+
+- It binds **exact spellings**, as §3.1 does: `--image-format` does not collide
+  with `--format`.
+- **Meaning** covers what the option does and the values it accepts. A tool MAY
+  accept a subset of the values, but a value it accepts means what it means in
+  the tool that released the name first.
+- A tool that **passes an option through** to another family tool keeps the
+  name and the meaning unchanged (epublift's `repair --goal`, `check
+  --profile`).
+- **The owner is bound by its own released meaning.** It MAY add values.
+  Changing what a released option or value does is a breaking change in the
+  owner's versioning, announced beforehand to the family tools that use the
+  name.
+- **The first released use wins.** If two tools ever ship one name with two
+  meanings, the later one is renamed. Pre-1.0 that is a cost to schedule, not a
+  constraint to design around
+  ([CONTRIBUTING §2](./CONTRIBUTING.md#2-the-governing-principle)).
 
 ### 3.3 Accepted syntaxes
 
@@ -308,7 +332,7 @@ For any tool that writes files:
   - an **EXIT CODES** summary, in the tool's own terms (*"0 — the book is valid
     after repair (or was already)"*);
   - a **conformance line** naming a tagged version: *"Conforms to veripublica
-    conventions v0.6."*
+    conventions v0.7."*
 - Reserved options SHOULD be described with the canonical one-liners from
   [§3.1](#31-reserved-options), verbatim — read once, recognized in every tool.
 - **Help is the reference; the error message is the front line.** Nobody reads
@@ -337,9 +361,9 @@ A verifier needs no `-o` and no `--dry-run`; a tool with no prompts needs no
 `-y`. That is why there are no levels: "full conformance" would name a target no
 tool should even want to reach.
 
-The claim — *"conforms to veripublica conventions v0.6"* — names the convention's
+The claim — *"conforms to veripublica conventions v0.7"* — names the convention's
 **stability key** (see [§9](#9-versioning)), and a tag with that prefix (e.g.
-`v0.6.0`) MUST exist: a claim against `main`, or against an untagged version,
+`v0.7.0`) MUST exist: a claim against `main`, or against an untagged version,
 points at a moving document and asserts nothing.
 
 ## 9. Versioning
@@ -349,7 +373,7 @@ points at a moving document and asserts nothing.
 - This convention is versioned with SemVer and is itself `0.x`: while below
   `1.0.0`, any rule MAY change, and the **stability boundary is the minor
   version** (`0.1` → `0.2` may break anything). From `1.0.0` on, the boundary is
-  the major version. The version prefix at that boundary — `0.6` today, `1`
+  the major version. The version prefix at that boundary — `0.7` today, `1`
   after `1.0.0` — is the convention's **stability key**: the string tools claim
   ([§8](#8-conformance)) and machine output carries
   ([FORMATS.md](./FORMATS.md)).
