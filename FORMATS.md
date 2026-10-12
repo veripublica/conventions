@@ -1,6 +1,6 @@
 # veripublica machine-output format
 
-**Version 0.6.0.**
+**Version 0.7.0.**
 
 > **Implemented.** epubveri **v0.5.0** (2026-07-11) shipped the first
 > `--format json`; epubsana **v0.2.0** followed. The envelope is an **observed
@@ -35,7 +35,7 @@ inputs that could not be processed are described *inside* it.
 {
   "tool": "epubveri",
   "tool_version": "0.17.0",
-  "convention": "0.6",
+  "convention": "0.7",
   "status": "error",
   "dry_run": false,
   "inputs": [
@@ -86,7 +86,7 @@ same fact its human output already prints (`wrote book_fixed.epub`):
   "status": "ok",
   "output": "book_fixed.epub",
   "summary": {
-    "fatals_before": 0, "errors_before": 150, "warnings_before": 12,
+    "fatals_before": 1, "errors_before": 150, "warnings_before": 12,
     "infos_before": 0, "usages_before": 4,
     "fatals_after": 0, "errors_after": 0, "warnings_after": 12,
     "infos_after": 0, "usages_after": 4,
@@ -98,7 +98,7 @@ same fact its human output already prints (`wrote book_fixed.epub`):
       "outcome": "applied",
       "code": "RSC-016",
       "rule": "htm.entity.undeclared",
-      "severity": "error",
+      "severity": "fatal",
       "location": "OEBPS/ch1.xhtml",
       "message": "Mapped 774 undeclared HTML entities to characters",
       "data": { "occurrences": 774 }
@@ -113,7 +113,7 @@ same fact its human output already prints (`wrote book_fixed.epub`):
 | --- | --- | --- |
 | `tool` | string | The tool's name (e.g. `"epubveri"`). |
 | `tool_version` | string | The tool's SemVer. |
-| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.6"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. The key is **asserted by the emitting tool about itself**: a shared implementation takes it from the tool rather than stamping its own, so that a tool never claims a version it has not implemented by inheriting one from a dependency. |
+| `convention` | string | The convention's **stability key**: the version prefix at which stability is guaranteed — `"0.7"` while the convention is `0.x`, `"1"` from `1.0.0` on ([CLI.md §9](./CLI.md#9-versioning)). Compare with string equality; there is nothing finer to parse. The key is **asserted by the emitting tool about itself**: a shared implementation takes it from the tool rather than stamping its own, so that a tool never claims a version it has not implemented by inheriting one from a dependency. |
 | `status` | string | Mirror of the exit code, aggregated over the inputs: `"ok"` (every input clean / every goal met) → `0`; `"problems"` (every input processed; error- or fatal-severity findings, or an unmet goal, remain — [CLI.md §6](./CLI.md#6-exit-codes)'s threshold) → `1`; `"error"` (**at least one input could not be processed**) → `2`. A tool that could not run at all emits no envelope. |
 | `dry_run` | boolean | `true` when the run was `--dry-run`: the identical shape, items describing what *would* be done (every item's `outcome` is `"proposed"`), `output` naming what *would* be written. Absent means `false`. The flag is a summary of the items; the two can never disagree. |
 | `summary` | object | Optional aggregate counts (small, flat, tool-specific). Derivable from the inputs; a consumer MUST NOT require it. What its counters must report, and what a filtered run must record in it, are in [§1.4](#14-counters-and-what-a-filtered-run-must-record). |
@@ -147,9 +147,9 @@ them across tools — and a tool MAY add more under `data`:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `type` | string | Item kind: `"finding"` (verifier), `"fix"` (repairer), `"operation"` (transformer). |
+| `type` | string | Item kind: `"finding"`, a tool's grading of part of the input; `"fix"`, a repair a repairer made or offered; `"operation"`, a change a transformer made or offered. Any tool MAY emit findings. |
 | `outcome` | string | What happened to the item: `"applied"`, `"skipped"`, `"proposed"`, or `"reverted"`. **Required** on `"fix"` and `"operation"` items; never present on `"finding"` items. See below. |
-| `code` | string | The stable, tool-facing code — for EPUB tools, the epubcheck-compatible message ID (e.g. `"RSC-005"`). |
+| `code` | string | The stable, tool-facing code. For EPUB tools, the epubcheck-compatible message ID (e.g. `"RSC-005"`) where epubcheck has one for the state at the item's severity or below it. Otherwise a tool-owned code, under a prefix epubcheck does not use (epubveri's `ADV-`, `NEXT-`, `LIM-`). |
 | `rule` | string | Optional finer sub-code (e.g. `"ncx.ids.invalid_ncname"`). |
 | `severity` | string | One of `"fatal"`, `"error"`, `"warning"`, `"info"`, `"usage"` — epubcheck's vocabulary, completing the `code` contract. See below. |
 | `location` | string | Container-relative path the item concerns, if any. |
@@ -194,6 +194,30 @@ Two boundaries hold `"reverted"` to that one meaning:
 - It is **one value, not a family.** Why a fix was reverted is the finding it
   produced, in the detector's own vocabulary; it belongs in tool-owned `data`,
   not in a closed set of revert reasons.
+
+**A part a transformer leaves untouched is a finding.** When a transformer
+finishes its run but leaves part of the input as it was, because the tool
+cannot process that part, it reports this as a `"finding"` item: `location`
+names the part, `message` gives the reason. It is not an `"operation"`, because
+no operation took place, and it carries no `outcome`.
+
+- **Its severity is at least `error`.** The part is what leaves the
+  transformer's goal unmet ([CLI.md §6](./CLI.md#6-exit-codes)). Below `error`,
+  the finding would say the goal was met while the run exits `1`. Where a
+  verifier would grade the part's state higher, the finding takes that grade: a
+  document that is not well-formed XML is `fatal`, as epubcheck reports it.
+- **`code`** follows the `code` row above. Where epubcheck's ID for the state
+  carries a lower grade (a UTF-16 document is RSC-027, a warning), the finding
+  uses a tool-owned code.
+- **It is a state of the input, not a failure of the run.** A part the input
+  itself makes unreadable (a corrupt zip entry) is a finding. A read that fails
+  for a reason outside the input (an I/O error) is still an exit-`2` condition,
+  as above.
+- The input's `status` is `"problems"`, which matches exit `1`.
+
+This binds only that item. It does not say that a transformer's exit `1` must
+always be readable from its items: a repairer whose unrepaired errors appear
+only in `summary` conforms as before.
 
 ### 1.4 Counters, and what a filtered run must record
 
@@ -300,7 +324,7 @@ promoted to a shared item field — by an issue on this repository, not by drift
 A **reference implementation** of the skeleton exists — non-normative: the
 JSON above is the contract, the types are a convenience. It lives in
 [`epubveri::envelope`](https://github.com/veripublica/epubveri) (the reference
-tool, `epubveri = "0.13"` at the time of writing), generic over the two
+tool, `epubveri = "0.24"` at the time of writing), generic over the two
 tool-owned slots (`summary`, `data`), and is used by epubveri and epubsana. It
 stays there until a veripublica **Rust** tool that does **not** depend on
 epubveri needs the envelope, at which point it moves to its own crate — the

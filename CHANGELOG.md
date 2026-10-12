@@ -17,6 +17,56 @@ That label is the queue; this section is filled in by the pull request that ship
 them. Listing them here as well would be a second copy to keep in step, and it
 would drift.
 
+## [0.7.0] — 2026-10-12
+
+Two decisions (#34, #35). A **minor**: #34 adds a MUST to the CLI, and #35
+widens what a tool may emit and gives `code` a written rule. Both came out of
+kepubverto, the family's new EPUB → KEPUB transformer, which ports options from
+an outside tool and leaves parts of a book untouched. The **stability key moves
+`0.6` → `0.7`**, and tools re-declare when they adopt.
+
+### Added — a long name means one thing family-wide (#34)
+
+- CLI §3.2.2: a long option name that a family tool has released has that
+  tool's meaning in **every tool and every subcommand** that uses it. It binds
+  exact spellings, covers the option's values (a tool MAY accept a subset), and
+  holds through pass-through. **The owner is bound by its own released
+  meaning**: adding a value is free, and changing one is a breaking change of
+  the owner, announced to the tools that use the name. **The first released use
+  wins.**
+- §3.2's last bullet now names this as the second reason an existing name may
+  change, so the two sections agree.
+- No behaviour change for released tools, except two cases inside epublift
+  (`--json`, `--cover`), which it has scheduled for its next major.
+- Declined: *one meaning, one name* (no real case was found), and a registry
+  table in CLI.md (a second copy of the tools' `--help`).
+
+### Added — any tool may emit findings; an untouched part is one (#35)
+
+- FORMATS §1.3, `type`: the row now says what each kind means, not who emits
+  it. **Any tool MAY emit findings.**
+- FORMATS §1.3, new paragraph: **a part a transformer leaves untouched is a
+  finding**, with `location` and `message` and no `outcome`, at a severity of
+  **at least `error`**, because it is what leaves the transformer's goal unmet
+  (CLI §6). A corrupt part of the input is a finding; an I/O failure stays
+  exit `2`. This binds only that item. A repairer whose unrepaired errors are
+  only in `summary` conforms as before.
+- FORMATS §1.3, `code`: an epubcheck ID is used only at a severity epubcheck
+  gives it or higher. Otherwise a tool-owned code, **under a prefix epubcheck
+  does not use** (epubveri's `ADV-`, `NEXT-`, `LIM-`). epubveri's `LIM-` codes,
+  released since its 0.9.0, already did what this release describes.
+- One released site breaks the `code` row: epubveri's `RSC-007` at `warning` on
+  EPUB 2. It moves to `RSC-007w` in an ordinary epubveri release.
+- Declined: a new `outcome`, a summary counter only, stretching `skipped`, an
+  exception in CLI §6, keeping an epubcheck ID at a raised severity.
+
+### Fixed
+
+- FORMATS §1: the transformer example's `RSC-016` fix item is now `fatal`, the
+  grade epubcheck gives `RSC-016`. Under the new `code` row the example's own
+  `error` would have contradicted the document. Its `fatals_before` follows.
+- FORMATS §2: the reference implementation's version is now `epubveri = "0.24"`.
+
 ## [0.6.0] — 2026-09-22
 
 One decision (#31), written in when its emitter arrived. A **minor**: a closed
@@ -362,7 +412,8 @@ document instead of a moving `main`.
   "major version" and is under discussion in
   [#12](https://github.com/veripublica/conventions/issues/12).
 
-[Unreleased]: https://github.com/veripublica/conventions/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/veripublica/conventions/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/veripublica/conventions/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/veripublica/conventions/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/veripublica/conventions/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/veripublica/conventions/compare/v0.4.0...v0.4.1
